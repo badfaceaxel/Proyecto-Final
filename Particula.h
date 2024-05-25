@@ -13,6 +13,9 @@ public:
     QRectF boundingRect() const override; //sobrecarga un método de la clase padre, que entrega las coordenadas del rectángulo que engloba la partícula
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override; //otra sobrecarga
 
+    // Reimplementación del evento Keypress
+    void keyPressEvent(QKeyEvent *event) override;
+
     // Movimiento
     void moveBy(int dx, int dy);
 

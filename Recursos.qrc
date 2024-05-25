@@ -1,0 +1,7 @@
+<RCC>
+    <qresource lang="Español" prefix="/Imagenes">
+        <file>background.jpg</file>
+        <file>SpriteADE.png</file>
+    </qresource>
+    <qresource prefix="/Imagenes"/>
+</RCC>
