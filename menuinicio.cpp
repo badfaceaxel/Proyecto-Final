@@ -9,7 +9,7 @@
 MenuInicio::MenuInicio(QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::MenuInicio)
-    //, labelTitle(new QLabel(this))  // Inicializar labelTitle
+
 {
     ui->setupUi(this);
 
@@ -22,22 +22,22 @@ MenuInicio::MenuInicio(QWidget *parent)
     background = new QGraphicsPixmapItem(backgroundImage);
     scene->addItem(background);
 
+    QPixmap titleImage(":/Imagenes/title.png");
+    titleItem = new QGraphicsPixmapItem(titleImage);
+    scene->addItem(titleItem);
+
+    // Ajustar la posición del título en la escena
+    titleItem->setPos(scene->width() / 2.5 - titleItem->boundingRect().width() / 2, scene->height() / 8);
+    // Aumentar el tamaño del título
+    titleItem->setScale(1.5);
+
     // Ajustar la vista para que la imagen de fondo ocupe todo el espacio disponible
     ui->graphicsView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     ui->graphicsView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     ui->graphicsView->setAlignment(Qt::AlignTop | Qt::AlignLeft);
     ui->graphicsView->setFrameStyle(QFrame::NoFrame);
 
-    // Cargar y mostrar la imagen del título
-    //QPixmap titleImage(":/Imagenes/title.png"); // Asegúrate de que la ruta sea correcta
-    //labelTitle->setPixmap(titleImage);
-    //labelTitle->setAlignment(Qt::AlignCenter);
 
-    // Colocar labelTitle en el layout
-    //QVBoxLayout *layout = new QVBoxLayout(this);
-    //layout->addWidget(labelTitle);
-    //layout->addWidget(ui->graphicsView);
-    //setLayout(layout);
 
     // Ajustar la vista al tamaño de la ventana al inicio
     adjustBackground();

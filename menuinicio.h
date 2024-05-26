@@ -26,6 +26,7 @@ private:
     Ui::MenuInicio *ui;
     QGraphicsScene *scene;
     QGraphicsPixmapItem *background;
+    QGraphicsPixmapItem *titleItem;
     //QLabel *labelTitle;  // Declarar QLabel para el título
 
     void adjustBackground();
