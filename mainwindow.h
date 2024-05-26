@@ -9,8 +9,7 @@ QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 
-class MainWindow : public QMainWindow
-{
+class MainWindow : public QMainWindow {
     Q_OBJECT
 
 public:
@@ -19,11 +18,12 @@ public:
     bool clic;
 
 private slots:
-    void on_pushButton_clicked(); //Se crea una vez vamos al slot
+    void on_pushButton_clicked();
     void hmov(Particula *bola);
 
 private:
     Ui::MainWindow *ui;
     QTimer *timer;
 };
+
 #endif // MAINWINDOW_H

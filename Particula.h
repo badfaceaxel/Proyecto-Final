@@ -5,28 +5,27 @@
 
 class QTimer;
 
-class Particula : public QGraphicsItem //Hereda de
-{
+class Particula : public QGraphicsItem {
 public:
-    Particula(QGraphicsItem *parent = nullptr); //Es un constructor que puede tomar un puntero a un padre
+    Particula(QGraphicsItem *parent = nullptr);
 
-    QRectF boundingRect() const override; //sobrecarga un método de la clase padre, que entrega las coordenadas del rectángulo que engloba la partícula
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override; //otra sobrecarga
+    QRectF boundingRect() const override;
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override;
 
     // Reimplementación del evento Keypress
     void keyPressEvent(QKeyEvent *event) override;
 
     // Movimiento
     void moveBy(int dx, int dy);
+    void on_pushButton_clicked();
 
-private: //Podrían ser públicas
+private:
     qreal posX;
     qreal posY;
-    QTimer *timer; //Objeto que permite manejar eventos repetitivos
-
+    QTimer *timer;
 
 private slots:
-    void movimiento(); //Los slots son miembros de una clase que se pueden conectar a señales, eventos, emitidos por objetos
+    void movimiento();
 };
 
 #endif // PARTICULA_H

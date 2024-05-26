@@ -1,7 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "Particula.h"
-#include "Jugador.h"
+#include "jugador.h"
 #include <qdebug.h>
 #include <QLabel>
 #include <QPixmap>
@@ -108,11 +108,11 @@ MainWindow::~MainWindow()
 void MainWindow::on_pushButton_clicked()
 {
     if (clic){
-        ui->pushButton->setText("Hizo click");
+       // ui->pushButton->setText("Hizo click");
         clic = false;
     }
     else{
-        ui->pushButton->setText("Haga clic");
+        //ui->pushButton->setText("Haga clic");
         clic = true;
     }
     if (timer->isActive()) timer->stop();
