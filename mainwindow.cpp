@@ -2,6 +2,7 @@
 #include "ui_mainwindow.h"
 #include "Particula.h"
 #include "jugador.h"
+#include "Enemigo1.h"
 #include <qdebug.h>
 #include <QLabel>
 #include <QPixmap>
@@ -37,6 +38,10 @@ MainWindow::MainWindow(QWidget *parent)
 
     Particula *bola = new Particula();
     scene->addItem(bola);
+
+    Enemigo1* enemigo = new Enemigo1(ui->graphicsView, scene);
+    scene->addItem(enemigo);
+    enemigo->setPos(300, 200);
 
     Jugador *jug1 = new Jugador(ui->graphicsView);
     scene -> addItem(jug1);
@@ -108,7 +113,7 @@ MainWindow::~MainWindow()
 void MainWindow::on_pushButton_clicked()
 {
     if (clic){
-       // ui->pushButton->setText("Hizo click");
+        //ui->pushButton->setText("Hizo click");
         clic = false;
     }
     else{
