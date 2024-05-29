@@ -1,14 +1,8 @@
 #include "menuinicio.h"
 #include "ui_menuinicio.h"
-#include <QGraphicsPixmapItem>
-#include <QGraphicsScene>
-#include <QResizeEvent>
-#include <QShowEvent>
-//#include <QSound>
-#include <QDebug>
 
 MenuInicio::MenuInicio(QWidget *parent)
-    : QWidget(parent)
+    : QMainWindow(parent)
     , ui(new Ui::MenuInicio)
 {
     ui->setupUi(this);
@@ -18,11 +12,18 @@ MenuInicio::MenuInicio(QWidget *parent)
     ui->graphicsView->setScene(scene);
 
     // Cargar la imagen de fondo
-    QPixmap backgroundImage(":/Imagenes/menu1.jpg");
+    QPixmap backgroundImage(":/Media/menu1.jpg");
     background = new QGraphicsPixmapItem(backgroundImage);
     scene->addItem(background);
 
-    QPixmap titleImage(":/Imagenes/title.png");
+    // Ajustar la vista para que la imagen de fondo ocupe todo el espacio disponible
+    ui->graphicsView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    ui->graphicsView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    ui->graphicsView->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+    ui->graphicsView->setFrameStyle(QFrame::NoFrame);
+
+    //Cargar titulo
+    QPixmap titleImage(":/Media/title.png");
     titleItem = new QGraphicsPixmapItem(titleImage);
     scene->addItem(titleItem);
 
@@ -31,40 +32,90 @@ MenuInicio::MenuInicio(QWidget *parent)
     // Aumentar el tamaño del título
     titleItem->setScale(1.5);
 
+    // Cargar y redimensionar la imagen de la firma
+    QPixmap signImage("/Media/Firma.png");
+    signItem = new QGraphicsPixmapItem(signImage);
+    scene->addItem(signItem);
+
     // Crear botones
     botonInicio = new QPushButton(this);
     botonScore = new QPushButton(this);
     botonSalir = new QPushButton(this);
 
-    // Asignar imágenes
-    botonInicio->setStyleSheet("QPushButton { border-image: url(:/Imagenes/BotonInicio.png); }");
-    botonScore->setStyleSheet("QPushButton { border-image: url(:/Imagenes/BotonScore.png); }");
-    botonSalir->setStyleSheet("QPushButton { border-image: url(:/Imagenes/BotonSalir.png); }");
+    // Cargar imágenes normales y rojas de los botones
+    botonInicioNormal.load("/Media/BotonInicio.png");
+    botonInicioRojo.load(":/Media/BotonInicioRojo.png");
+    botonScoreNormal.load(":/Media/BotonScore.png");
+    botonScoreRojo.load(":/Media/BotonScoreRojo.png");
+    botonSalirNormal.load(":/Media/BotonSalir.png");
+    botonSalirRojo.load(":/Media/BotonSalirRojo.png");
 
-    // Conectar los botones a sus slots
+    // Asignar imágenes normales
+    botonInicio->setStyleSheet("QPushButton { border-image: url(:/Media/BotonInicio.png); }");
+    botonScore->setStyleSheet("QPushButton { border-image: url(:/Media/BotonScore.png); }");
+    botonSalir->setStyleSheet("QPushButton { border-image: url(:/Media/BotonSalir.png); }");
+
+    // Conectar señales y ranuras
     connect(botonInicio, &QPushButton::clicked, this, &MenuInicio::onBotonInicioClicked);
     connect(botonScore, &QPushButton::clicked, this, &MenuInicio::onBotonScoreClicked);
     connect(botonSalir, &QPushButton::clicked, this, &MenuInicio::onBotonSalirClicked);
 
-    // Ajustar la vista para que la imagen de fondo ocupe todo el espacio disponible
-    ui->graphicsView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    ui->graphicsView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    ui->graphicsView->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-    ui->graphicsView->setFrameStyle(QFrame::NoFrame);
+    botonInicio->setMouseTracking(true);
+    botonScore->setMouseTracking(true);
+    botonSalir->setMouseTracking(true);
+
+    // Instalar filtro de eventos para los botones
+    botonInicio->installEventFilter(this);
+    botonScore->installEventFilter(this);
+    botonSalir->installEventFilter(this);
+
+    // Cargar sonidos
+    hoverSound = new QSoundEffect(this);
+    hoverSound->setSource(QUrl::fromLocalFile(":/Media/Select1.wav"));
+    hoverSound->setVolume(0.25f);
+
+    clickSound = new QSoundEffect(this);
+    clickSound->setSource(QUrl::fromLocalFile(":/Media/Click1.wav"));
+    clickSound->setVolume(0.25f);
 
     // Ajustar la vista al tamaño de la ventana al inicio
     adjustBackground();
     adjustButtons();
+    adjustSign();
 }
 
 MenuInicio::~MenuInicio()
 {
     delete ui;
+    delete scene;
+    delete background;
+    delete titleItem;
+    delete signItem;
+    delete botonInicio;
+    delete botonScore;
+    delete botonSalir;
+
 }
 
 void MenuInicio::adjustBackground()
 {
     ui->graphicsView->fitInView(background, Qt::KeepAspectRatioByExpanding);
+}
+
+void MenuInicio::resizeEvent(QResizeEvent* event)
+{
+    QWidget::resizeEvent(event);
+    adjustBackground();
+    adjustButtons();
+    adjustSign();
+}
+
+void MenuInicio::showEvent(QShowEvent* event)
+{
+    QWidget::showEvent(event);
+    adjustBackground();
+    adjustButtons();
+    adjustSign();
 }
 
 void MenuInicio::adjustButtons()
@@ -73,54 +124,80 @@ void MenuInicio::adjustButtons()
     int sceneHeight = ui->graphicsView->height();
 
     // Calculamos una proporción basada en el tamaño inicial de la ventana
-    float widthRatio = static_cast<float>(sceneWidth) / 600.0;  // 600 es el ancho inicial
-    float heightRatio = static_cast<float>(sceneHeight) / 400.0; // 400 es el alto inicial
+    float widthRatio = static_cast<float>(sceneWidth) / 800.0;  // 600 es el ancho inicial
+    float heightRatio = static_cast<float>(sceneHeight) / 600.0; // 400 es el alto inicial
 
-    int buttonWidth = 100 * widthRatio;
+    int buttonWidth = 120 * widthRatio;
     int buttonHeight = 50 * heightRatio;
 
-    /// Coordenadas y tamaño del botón "Inicio"
-    botonInicio->setGeometry(sceneWidth / 2 - 220 * widthRatio, sceneHeight - 220 * heightRatio, buttonWidth, buttonHeight);
+    // Coordenadas y tamaño del botón "Inicio"
+    botonInicio->setGeometry(sceneWidth / 2 - 270 * widthRatio, sceneHeight - 300 * heightRatio, buttonWidth, buttonHeight);
 
     // Coordenadas y tamaño del botón "Score"
-    botonScore->setGeometry(sceneWidth / 2 - 220 * widthRatio, sceneHeight - 150 * heightRatio, buttonWidth, buttonHeight);
+    botonScore->setGeometry(sceneWidth / 2 - 270 * widthRatio, sceneHeight - 200 * heightRatio, buttonWidth, buttonHeight);
 
     // Coordenadas y tamaño del botón "Salir"
-    botonSalir->setGeometry(sceneWidth / 2 - 220 * widthRatio, sceneHeight - 80 * heightRatio, buttonWidth, buttonHeight);
-}
-
-void MenuInicio::resizeEvent(QResizeEvent* event)
-{
-    QWidget::resizeEvent(event);
-    adjustBackground();
-    adjustButtons();
-}
-
-void MenuInicio::showEvent(QShowEvent* event)
-{
-    QWidget::showEvent(event);
-    adjustBackground();
-    adjustButtons();
+    botonSalir->setGeometry(sceneWidth / 2 - 270 * widthRatio, sceneHeight - 100 * heightRatio, buttonWidth, buttonHeight);
 }
 
 void MenuInicio::onBotonInicioClicked()
 {
-    //QSound::play(":/Sonidos/button_click.wav");
     // iniciar el juego
+    clickSound->play();
     qDebug() << "Botón Inicio presionado";
 }
 
 void MenuInicio::onBotonScoreClicked()
 {
-    //QSound::play(":/Sonidos/button_click.wav");
-    //  mostrar el puntaje
+    // mostrar el puntaje
+    clickSound->play();
     qDebug() << "Botón Score presionado";
 }
 
 void MenuInicio::onBotonSalirClicked()
 {
-
-    //QSound::play(":/Sonidos/button_click.wav");
+    clickSound->play();
     // Cerrar la aplicación
     QApplication::quit();
+}
+
+bool MenuInicio::eventFilter(QObject *obj, QEvent *event)
+{
+    if (event->type() == QEvent::HoverEnter) {
+        if (obj == botonInicio) {
+            hoverSound->play();
+            botonInicio->setStyleSheet("QPushButton { border-image: url(:/Media/BotonInicioRojo.png); }");
+        } else if (obj == botonScore) {
+            hoverSound->play();
+            botonScore->setStyleSheet("QPushButton { border-image: url(:/Media/BotonScoreRojo.png); }");
+        } else if (obj == botonSalir) {
+            hoverSound->play();
+            botonSalir->setStyleSheet("QPushButton { border-image: url(:/Media/BotonSalirRojo.png); }");
+        }
+    } else if (event->type() == QEvent::HoverLeave) {
+        if (obj == botonInicio) {
+            botonInicio->setStyleSheet("QPushButton { border-image: url(:/Media/BotonInicio.png); }");
+        } else if (obj == botonScore) {
+            botonScore->setStyleSheet("QPushButton { border-image: url(:/Media/BotonScore.png); }");
+        } else if (obj == botonSalir) {
+            botonSalir->setStyleSheet("QPushButton { border-image: url(:/Media/BotonSalir.png); }");
+        }
+    }
+    return QWidget::eventFilter(obj, event);
+}
+
+void MenuInicio::adjustSign()
+{
+    int sceneWidth = ui->graphicsView->width();
+    int sceneHeight = ui->graphicsView->height();
+
+    // Escalar la firma basada en el tamaño de la ventana
+    float scaleRatio = static_cast<float>(sceneWidth) / 800.0;  // Cambiar este valor según sea necesario
+
+    QPixmap signImage(":/Media/Firma.png");
+    QPixmap scaledSignImage = signImage.scaled(200 * scaleRatio, 50 * scaleRatio, Qt::KeepAspectRatio); // Ajustar dimensiones según sea necesario
+    signItem->setPixmap(scaledSignImage);
+
+    // Colocar la firma en la esquina inferior derecha
+    signItem->setPos(30, 5); // Ajustar el offset (10) según sea necesario
 }
