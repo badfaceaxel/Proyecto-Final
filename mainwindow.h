@@ -18,12 +18,19 @@ public:
     bool clic;
 
 private slots:
-    void on_pushButton_clicked();
-    void hmov(Particula *bola);
+
 
 private:
     Ui::MainWindow *ui;
     QTimer *timer;
+
+    //FONDO
+    QGraphicsScene *scene;
+    QGraphicsPixmapItem *fondo;
+    int anchoFondo;
+    int anchoCuadrante;
+
+    void desplazarFondo(int desplazamiento);
 };
 
 #endif // MAINWINDOW_H

@@ -11,12 +11,11 @@ Jugador::Jugador(QGraphicsView *view,QGraphicsItem *im):QGraphicsPixmapItem(im)
 {
     setFlag(QGraphicsItem::ItemIsFocusable); // Mantener foco para eventos del teclado
     setFocus();
-    //setPixmap(QPixmap(":/sprites.png"));
+
     x=200;
     y = 200;
     setFlag(QGraphicsItem::ItemIsFocusable); //Inicialización opcional para decir que tiene el foco para eventos del teclado
-    //sceneRect = scene->sceneRect();
-    //qDebug() << scene->sceneRect();
+
     viewRect = view->size();
     QRectF sceneRect = view->sceneRect();
     //qDebug() << viewRect << " "<< sceneRect << " "<<view->size().width();
@@ -36,6 +35,8 @@ Jugador::Jugador(QGraphicsView *view,QGraphicsItem *im):QGraphicsPixmapItem(im)
 
     timerGolpe = new QTimer(this); // Inicializar el temporizador para el golpe
     connect(timerGolpe, &QTimer::timeout, this, &Jugador::actualizarGolpe); // Conectar la señal timeout del temporizador a la función actualizarGolpe
+    view->setMouseTracking(true); // Habilitar el seguimiento del mouse en la vista
+    view->viewport()->installEventFilter(this); // Instalar un filtro de eventos en el viewport
 }
 
 
@@ -51,24 +52,42 @@ void Jugador::verificarColisiones()
             QPointF posicionObjetoColision = item->pos();
 
             int dx = posicionObjetoColision.x();
-            //int dy = y - posicionObjetoColision.y();
+            int dy = posicionObjetoColision.y();
+            int objetoAncho = item->boundingRect().width();
+            int objetoAlto = item->boundingRect().height();
+            int jugadorAlto = boundingRect().height();
+            qDebug() << dy << y << jugadorAlto;
+            qDebug() << objetoAncho << objetoAlto;
 
             //qDebug() << dx << x;
-            if (dx-128 < x && x < dx-10) {
+            if (dx-128 < x && x < dx-10 && (y + jugadorAlto - 10 > dy && y < dy + objetoAlto) && dy > y+20 ) {
                 x -= 10;//izq
                 movimientoHaciaAdelante = false;
                 setSprite(movimientoHaciaAdelante);
                 moveBy(0, 0);
             }
-            else if ((dx+120) > x) {
+            else if ((dx+120) > x && (y + jugadorAlto - 10 > dy && y < dy + objetoAlto) && dy > y+20) {
                 qDebug() << dx << x;
                 x += 10;//der
                 movimientoHaciaAdelante = true;
                 setSprite(movimientoHaciaAdelante);
                 moveBy(0, 0);
 
+            } else if ((dy-y-objetoAlto) < (y+objetoAlto) && dy > y+20 ) {
+                // Colisión por encima del bloque
+                qDebug() << dy;
+                qDebug() << y;
+                y -= 5;
+                qDebug() << y;
+                movimientoHaciaAdelante = false; // Detiene el movimiento hacia adelante
+                setSprite(movimientoHaciaAdelante);
+                moveBy(0, 0);
+            } else if ((dy > y)){
+                y += 5;
+                setSprite(movimientoHaciaAdelante);
+                moveBy(0, 0);
             }
-
+            moveBy(0, 0);
             break;
         }
     }
@@ -101,8 +120,16 @@ void Jugador::keyPressEvent(QKeyEvent *event)
         if (!enElAire) {
             enElAire = true;
             dy = -alturaSalto;
-            timerSalto->start(350); // Iniciar el temporizador de salto
+            timerSalto->start(225); // Iniciar el temporizador de salto
         }
+        break;
+    case Qt::Key_Q:
+        dy = -5;
+        movimientoHaciaAdelante = false;
+        break;
+    case Qt::Key_S:
+        dy = 5;
+        movimientoHaciaAdelante = false;
         break;
     default:
         QGraphicsItem::keyPressEvent(event);
@@ -120,17 +147,24 @@ void Jugador::keyPressEvent(QKeyEvent *event)
     setSprite(movimientoHaciaAdelante);
 }
 
-void Jugador::moveBy(int dx, int dy)
-{
-    x += dx;
-    y += dy;
-    //qDebug() << x << " "<<y;
-    //qDebug() << "Tecla: " << x << " " <<sceneRect.right()<<" "<<sceneRect.left();
-    if (x>viewRect.width()-50||x<0){
-        x-=dx;
-    }
-    setPos(x, y);
+void Jugador::moveBy(int dx, int dy) {
+    // Calcular nueva posición potencial
+    qreal newX = x + dx;
+    qreal newY = y + dy;
 
+    // Verificar límites de posición
+    if (newX < 0) {
+        newX = 0;
+    } else if (newX > 800) {
+        newX = 0;
+    }
+
+    // Actualizar posición
+    x = newX;
+    y = newY;
+
+    // Establecer nueva posición
+    setPos(x, y);
 }
 
 void Jugador::setSprite(bool movimientoHaciaAdelante)
@@ -195,6 +229,8 @@ void Jugador::setSprite(bool movimientoHaciaAdelante)
 
 void Jugador::actualizarSalto()
 {
+    verificarColisiones();
+
     // Ajustar el tiempo y la gravedad para controlar la altura y la duración del salto
     double tiempo = contSalto * 70; // Ajusta el factor de tiempo según el intervalo del temporizador (220ms)
     double gravedad = 4; // Ajusta la gravedad según el efecto deseado
@@ -212,7 +248,7 @@ void Jugador::actualizarSalto()
     }
 
     // Actualizar la posición horizontal
-    x += movimientoHorizontal * velocidadHorizontal;
+    x += movimientoH * velocidadHorizontal;
 
     // Actualizar el sprite del jugador
     setSprite(movimientoHaciaAdelante);
@@ -230,7 +266,6 @@ void Jugador::mousePressEvent(QGraphicsSceneMouseEvent *event) {
     } else {
         QGraphicsPixmapItem::mousePressEvent(event);
     }
-    setFocus(); // Volver a establecer el foco después de procesar el evento de clic
 }
 
 
@@ -238,5 +273,19 @@ void Jugador::mousePressEvent(QGraphicsSceneMouseEvent *event) {
 void Jugador::actualizarGolpe() {
     if (golpeando) {
         setSprite(golpeando); // Actualiza el sprite para la siguiente imagen de golpe
+        setFocus();
     }
+}
+
+bool Jugador::eventFilter(QObject *obj, QEvent *event) {
+    if (event->type() == QEvent::MouseButtonPress) {
+        QMouseEvent* mouseEvent = static_cast<QMouseEvent*>(event);
+        if (mouseEvent->button() == Qt::LeftButton && !golpeando) {
+            golpeando = true;
+            contGolpe = 0; // Reinicia el contador de golpe
+            timerGolpe->start(100); // Inicia el temporizador para la animación de golpe
+            setSprite(golpeando); // Actualiza el sprite para la primera imagen de golpe
+        }
+    }
+    return false; // Devuelve false para permitir que otros componentes manejen el evento
 }

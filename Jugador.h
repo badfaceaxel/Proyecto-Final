@@ -26,18 +26,14 @@ private:
 
     //salto
     bool enElAire = false; // Nueva bandera para controlar el estado de salto
-    int alturaSalto = 100;  // Altura del salto ******
+    int alturaSalto = 130;  // Altura del salto ******
     QTimer* timerSalto = nullptr; // Temporizador para controlar el salto
     int contSalto = 0;
     bool enSalto;
     int alturaSaltoInicial; // Altura inicial del salto
     double velocidadInicial; // Velocidad inicial del salto
-    double movimientoHorizontal; // Dirección del movimiento horizontal durante el salto
+    double movimientoH; // Dirección del movimiento horizontal durante el salto
     double velocidadHorizontal; // Velocidad horizontal durante el salto
-
-
-    QPixmap sprite;
-    QPixmap spriteSheet;
 
     // Golpe
     bool golpeando = false; // Nueva bandera para controlar el estado de golpe
@@ -64,6 +60,15 @@ public:
     //golpe
     void mousePressEvent(QGraphicsSceneMouseEvent *event) override; // Añadir la función para manejar el evento de clic del ratón
     void actualizarGolpe();
+    bool eventFilter(QObject* obj, QEvent* event);
+
+protected:
+    QPixmap sprite;
+    QPixmap spriteSheet;
+
+signals:
+    void movimientoHorizontal(int desplazamiento);
+
 };
 
 #endif // JUGADOR_H
