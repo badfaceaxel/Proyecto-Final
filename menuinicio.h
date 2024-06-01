@@ -1,6 +1,7 @@
 #ifndef MENUINICIO_H
 #define MENUINICIO_H
 
+#include <QApplication>
 #include <QMainWindow>
 #include <QWidget>
 #include <QGraphicsPixmapItem>
@@ -12,6 +13,13 @@
 #include <QResizeEvent>
 #include <QShowEvent>
 #include <QSoundEffect>
+#include <QMediaPlayer>
+#include <QMediaMetaData>
+
+// Agrega esta línea para la declaración anticipada
+class Level1;  // Esto le dice al compilador que Level1 es una clase, sin dar detalles
+class Jugador;
+
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -37,6 +45,8 @@ private slots:
     void onBotonScoreClicked();
     void onBotonSalirClicked();
 
+
+
 private:
     Ui::MenuInicio *ui;
     QGraphicsScene *scene;
@@ -54,6 +64,10 @@ private:
     QPixmap botonSalirRojo;
     QSoundEffect* hoverSound;
     QSoundEffect* clickSound;
+    QSoundEffect* music;
+
+    Level1 *level1;
+
 
     void adjustBackground();
     void adjustButtons();

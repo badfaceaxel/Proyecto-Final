@@ -11,5 +11,9 @@
         <file>Click1.wav</file>
         <file>Select1.wav</file>
         <file>Firma.png</file>
+        <file>Musica1.mp3</file>
+        <file>background.jpg</file>
+        <file>SpriteADE.png</file>
+        <file>SpriteEnemigoADE.png</file>
     </qresource>
 </RCC>

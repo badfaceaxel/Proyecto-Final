@@ -1,9 +1,14 @@
 #include "menuinicio.h"
 #include "ui_menuinicio.h"
+#include "level1.h"  // Agrega esta línea aquí
+#include "jugador.h"
+#include "nicknamedialog.h"
 
 MenuInicio::MenuInicio(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MenuInicio)
+    , level1(nullptr)  // Inicializa level1 a nullptr
+
 {
     ui->setupUi(this);
 
@@ -78,6 +83,16 @@ MenuInicio::MenuInicio(QWidget *parent)
     clickSound->setSource(QUrl::fromLocalFile(":/Media/Click1.wav"));
     clickSound->setVolume(0.25f);
 
+
+    // Cargar sonidos
+    music = new QSoundEffect(this);
+    music->setSource(QUrl::fromLocalFile("C:/Users/johna/Desktop/Pruebas2/Musica1.wav"));
+    music->setVolume(0.25f);
+    music->setLoopCount(QSoundEffect::Infinite);
+    music->play();
+
+
+
     // Ajustar la vista al tamaño de la ventana al inicio
     adjustBackground();
     adjustButtons();
@@ -94,7 +109,10 @@ MenuInicio::~MenuInicio()
     delete botonInicio;
     delete botonScore;
     delete botonSalir;
-
+    delete hoverSound;
+    delete clickSound;
+    delete music;
+    delete level1;
 }
 
 void MenuInicio::adjustBackground()
@@ -145,7 +163,16 @@ void MenuInicio::onBotonInicioClicked()
     // iniciar el juego
     clickSound->play();
     qDebug() << "Botón Inicio presionado";
+
+    // Crea y muestra la ventana del nivel 1
+    if (!level1) {
+        level1 = new Level1();
+    }
+    level1->show();
+    this->hide();  // Oculta la ventana del menú
 }
+
+
 
 void MenuInicio::onBotonScoreClicked()
 {
