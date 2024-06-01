@@ -19,6 +19,7 @@
 // Agrega esta línea para la declaración anticipada
 class Level1;  // Esto le dice al compilador que Level1 es una clase, sin dar detalles
 class Jugador;
+class nicknamedialog;
 
 
 QT_BEGIN_NAMESPACE
@@ -67,6 +68,7 @@ private:
     QSoundEffect* music;
 
     Level1 *level1;
+
 
 
     void adjustBackground();

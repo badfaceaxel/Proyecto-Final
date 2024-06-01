@@ -4,7 +4,7 @@
 #include "jugador.h"
 #include "nicknamedialog.h"
 
-MenuInicio::MenuInicio(QWidget *parent)
+MenuInicio::MenuInicio(QWidget *parent)   ////
     : QMainWindow(parent)
     , ui(new Ui::MenuInicio)
     , level1(nullptr)  // Inicializa level1 a nullptr
@@ -113,6 +113,7 @@ MenuInicio::~MenuInicio()
     delete clickSound;
     delete music;
     delete level1;
+
 }
 
 void MenuInicio::adjustBackground()
@@ -163,14 +164,43 @@ void MenuInicio::onBotonInicioClicked()
     // iniciar el juego
     clickSound->play();
     qDebug() << "Botón Inicio presionado";
-
+    /*
     // Crea y muestra la ventana del nivel 1
     if (!level1) {
         level1 = new Level1();
     }
     level1->show();
     this->hide();  // Oculta la ventana del menú
+    */
+
+    NicknameDialog dialog(this);
+    int result = dialog.exec();
+
+    if (result == QDialog::Accepted) {
+        QString nickname = dialog.getNickname();
+        if (!nickname.isEmpty()) {
+            // Crea y muestra la ventana del nivel 1
+            if (!level1) {
+                level1 = new Level1();
+            }
+
+            // Asigna el nickname al jugador
+            if (level1->getJugador()) {
+                level1->getJugador()->setNickname(nickname);
+            }
+
+            level1->show();
+            this->hide();  // Oculta la ventana del menú
+        } else {
+            // Opcionalmente, muestra un mensaje si el nickname está vacío
+            QMessageBox::warning(this, "Error", "Por favor, ingresa un nickname.");
+        }
+    }
+
 }
+
+
+
 
 
 
