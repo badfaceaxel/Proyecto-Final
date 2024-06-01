@@ -42,7 +42,7 @@ Jugador::Jugador(QGraphicsView *view,QGraphicsItem *im):QGraphicsPixmapItem(im)
 
 void Jugador::verificarColisiones()
 {
-    QList<QGraphicsItem*> colisionesItems = collidingItems();
+    /*QList<QGraphicsItem*> colisionesItems = collidingItems();
 
     for (QGraphicsItem* item : colisionesItems) {
         // Verifica si el objeto es un cuadrado
@@ -79,18 +79,20 @@ void Jugador::verificarColisiones()
                 qDebug() << y;
                 y -= 5;
                 qDebug() << y;
+                bool Colision = true;
                 movimientoHaciaAdelante = false; // Detiene el movimiento hacia adelante
                 setSprite(movimientoHaciaAdelante);
                 moveBy(0, 0);
             } else if ((dy > y)){
                 y += 5;
                 setSprite(movimientoHaciaAdelante);
+
                 moveBy(0, 0);
             }
             moveBy(0, 0);
             break;
         }
-    }
+    }*/
 }
 
 void Jugador::keyPressEvent(QKeyEvent *event)
@@ -117,10 +119,11 @@ void Jugador::keyPressEvent(QKeyEvent *event)
         }
         break;
     case Qt::Key_W:
-        if (!enElAire) {
-            enElAire = true;
-            dy = -alturaSalto;
-            timerSalto->start(225); // Iniciar el temporizador de salto
+        if (!enElAire) { // Salta solo si el jugador no está en el aire
+            dy = -alturaSalto; // Establece el valor inicial de dy para el salto
+            alturaSaltoInicial = y;
+            enElAire = true; // Establece la bandera enElAire como verdadera
+            timerSalto->start(450); // Inicia el temporizador de salto
         }
         break;
     case Qt::Key_Q:
@@ -229,32 +232,60 @@ void Jugador::setSprite(bool movimientoHaciaAdelante)
 
 void Jugador::actualizarSalto()
 {
-    verificarColisiones();
-
     // Ajustar el tiempo y la gravedad para controlar la altura y la duración del salto
-    double tiempo = contSalto * 70; // Ajusta el factor de tiempo según el intervalo del temporizador (220ms)
-    double gravedad = 4; // Ajusta la gravedad según el efecto deseado
+    double tiempo = timerSalto->interval() / 70.0; // Tiempo transcurrido en segundos
+    double gravedad = 2; // Ajusta la gravedad según el efecto deseado
 
     // Calcular la posición vertical usando la fórmula del movimiento parabólico
-    y = alturaSaltoInicial - (velocidadInicial * tiempo) + (0.5 * gravedad * tiempo * tiempo);
+    y += velocidadInicial * tiempo + 0.5 * gravedad * tiempo * tiempo;
 
-    // Verificar si el jugador ha alcanzado la posición inicial del salto
-    if (y >= y) {
-        // Aterriza cuando llega al suelo
-        y = 200;
-        enElAire = false;
-        timerSalto->stop();
-        contSalto = 0; // Reinicia el contador de salto para el próximo salto
+    // Invertir la velocidad vertical cuando se alcance la altura máxima del salto
+    if (y <= alturaSaltoInicial - alturaSalto) {
+        velocidadInicial = -velocidadInicial;
     }
 
-    // Actualizar la posición horizontal
-    x += movimientoH * velocidadHorizontal;
+    // Verificar colisiones con objetos y ajustar la posición si es necesario
+    QList<QGraphicsItem*> colisionesItems = collidingItems();
+    for (QGraphicsItem* item : colisionesItems) {
+        if (item->type() == QGraphicsRectItem::Type) {
+            QPointF posicionObjetoColision = item->pos();
+            int dy = posicionObjetoColision.y();
+            int objetoAlto = item->boundingRect().height();
 
-    // Actualizar el sprite del jugador
-    setSprite(movimientoHaciaAdelante);
+            if ((dy-y-objetoAlto) < (y+objetoAlto) && dy > y+20 ) {
+                qDebug() << "ENTROOOOOOOOO";
+                // Colisión por encima del bloque
+                y = dy - boundingRect().height() ; // Ajustar la posición vertical del jugador
+                qDebug() << y;
+                velocidadInicial = 0; // Detener el movimiento vertical
+                enElAire = false; // Establecer la bandera enElAire como falsa
+                timerSalto->stop(); // Detener el temporizador de salto
+                Colision = true;
+                setSprite(movimientoHaciaAdelante);
+                break;
+            }
+        }
+    }
 
     // Actualizar la posición del jugador
+
+    //x += movimientoH * velocidadHorizontal + 5;
     setPos(x, y);
+    qDebug() << alturaSaltoInicial;
+    qDebug() << y;
+    if(y >= alturaSaltoInicial){
+        enElAire = false;
+    }
+    qDebug() << y;
+        // Verificar si el jugador ha alcanzado la posición inicial del salto
+    if (!enElAire && y >= alturaSaltoInicial && !Colision) {
+        qDebug() << "ENTROOOOOOOOO2";
+        y = alturaSaltoInicial; // Restaurar la posición inicial
+        timerSalto->stop();
+        setSprite(movimientoHaciaAdelante);
+        setPos(x, y);
+    }
+
 }
 
 void Jugador::mousePressEvent(QGraphicsSceneMouseEvent *event) {
@@ -266,6 +297,7 @@ void Jugador::mousePressEvent(QGraphicsSceneMouseEvent *event) {
     } else {
         QGraphicsPixmapItem::mousePressEvent(event);
     }
+    setFocus();
 }
 
 
@@ -287,5 +319,11 @@ bool Jugador::eventFilter(QObject *obj, QEvent *event) {
             setSprite(golpeando); // Actualiza el sprite para la primera imagen de golpe
         }
     }
+    setFocus();
     return false; // Devuelve false para permitir que otros componentes manejen el evento
+}
+
+QPointF Jugador::obtenerPosicion() const
+{
+    return QPointF(x, y);
 }

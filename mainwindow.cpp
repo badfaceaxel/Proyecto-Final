@@ -3,6 +3,7 @@
 #include "Particula.h"
 #include "jugador.h"
 #include "Enemigo1.h"
+#include "Enemigo2.h"
 #include <qdebug.h>
 #include <QLabel>
 #include <QPixmap>
@@ -21,29 +22,38 @@ MainWindow::MainWindow(QWidget *parent)
     QPixmap backgroundImage(":/Imagenes/background.jpg");
     QGraphicsPixmapItem *background = scene->addPixmap(backgroundImage);
 
+    Jugador *jug1 = new Jugador(ui->graphicsView);
+    scene -> addItem(jug1);
+    jug1->setPos(200,200);
+
+    //qDebug() << ui->graphicsView->size()<<" "<<scene->sceneRect();
+
     //PERSONAJES AÑADIR
     Enemigo1* enemigo = new Enemigo1(ui->graphicsView);
     scene->addItem(enemigo);
     enemigo->setPos(600, 200);
+    enemigo->setJugador(jug1);
 
-    Jugador *jug1 = new Jugador(ui->graphicsView);
-    scene -> addItem(jug1);
-    jug1->setPos(200,200);
     jug1->setFlag(QGraphicsItem::ItemIsFocusable);
     jug1->setFocus();
-    //qDebug() << ui->graphicsView->size()<<" "<<scene->sceneRect();
 
     // Crea un cuadrado
-    QGraphicsRectItem* cuadrado = new QGraphicsRectItem(0, 0, 50, 50);
+    QGraphicsRectItem* cuadrado = new QGraphicsRectItem(0, 0, 200, 20);
     cuadrado->setBrush(Qt::red);
     scene->addItem(cuadrado);
-    cuadrado->setPos(400, 200);
+    cuadrado->setPos(500, 230);
+
+    QGraphicsRectItem* suelo = new QGraphicsRectItem(0, 0, 800, 20);
+    suelo->setBrush(Qt::red);
+    scene->addItem(suelo);
+    suelo->setPos(0, 330);
+
 
     // Crea un temporizador para verificar colisiones
     QTimer* timerColisiones = new QTimer(this);
     connect(timerColisiones, &QTimer::timeout, jug1, &Jugador::verificarColisiones);
     timerColisiones->start(16); // Verifica colisiones cada 16
-
+    connect(jug1->timerSalto, &QTimer::timeout, jug1, &Jugador::actualizarSalto);
 
 }
 
