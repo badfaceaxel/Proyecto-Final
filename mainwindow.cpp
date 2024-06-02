@@ -34,6 +34,16 @@ MainWindow::MainWindow(QWidget *parent)
     enemigo->setPos(600, 200);
     enemigo->setJugador(jug1);
 
+    connect(enemigo, &Enemigo1::eliminarEnemigo, [=]() {
+        scene->removeItem(enemigo);
+        delete enemigo;
+    });
+
+    Enemigo2* enemigo2 = new Enemigo2(ui->graphicsView);
+    scene->addItem(enemigo2);
+    enemigo2->setPos(600, 135);
+    enemigo2->setJugador(jug1);
+
     jug1->setFlag(QGraphicsItem::ItemIsFocusable);
     jug1->setFocus();
 
@@ -47,7 +57,6 @@ MainWindow::MainWindow(QWidget *parent)
     suelo->setBrush(Qt::red);
     scene->addItem(suelo);
     suelo->setPos(0, 330);
-
 
     // Crea un temporizador para verificar colisiones
     QTimer* timerColisiones = new QTimer(this);

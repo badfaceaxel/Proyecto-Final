@@ -37,9 +37,14 @@ private:
     QGraphicsScene* scene; // Referencia a la escena
 
     Jugador* jugadorObj = nullptr; // Puntero al objeto Jugador
+
+    //VIDAAAa
+    bool vidaReducida = false;
 protected:
     QPixmap spriteEnem1;
 
+signals:
+    void eliminarEnemigo();
 };
 
 #endif // ENEMIGO1_H

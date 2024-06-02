@@ -5,6 +5,7 @@
 #include <QKeyEvent>
 #include <QGraphicsSceneMouseEvent>
 #include <QDebug>
+#include "Enemigo1.h"
 
 //Definir el jugador y la imgen
 Jugador::Jugador(QGraphicsView *view,QGraphicsItem *im):QGraphicsPixmapItem(im)
@@ -306,6 +307,17 @@ void Jugador::actualizarGolpe() {
     if (golpeando) {
         setSprite(golpeando); // Actualiza el sprite para la siguiente imagen de golpe
         setFocus();
+
+        // Obtener una lista de todos los elementos con los que colisiona el jugador
+        QList<QGraphicsItem*> colisionesItems = collidingItems();
+        for (QGraphicsItem* item : colisionesItems) {
+            // Verificar si el elemento es un Enemigo1
+            Enemigo1* enemigo = dynamic_cast<Enemigo1*>(item);
+            if (enemigo) {
+                // Emitir la señal para eliminar al enemigo
+                emit enemigo->eliminarEnemigo();
+            }
+        }
     }
 }
 
@@ -326,4 +338,13 @@ bool Jugador::eventFilter(QObject *obj, QEvent *event) {
 QPointF Jugador::obtenerPosicion() const
 {
     return QPointF(x, y);
+}
+
+void Jugador::disminuirVida(int cantidad) {
+    vida -= cantidad;
+    qDebug() << vida;
+    if (vida <= 0) {
+        // Aquí puedes agregar código para manejar cuando el jugador se queda sin vida
+        qDebug() << "El jugador ha perdido toda su vida";
+    }
 }

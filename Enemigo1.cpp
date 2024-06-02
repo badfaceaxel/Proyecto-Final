@@ -108,6 +108,15 @@ void Enemigo1::verificarColisionJugador() {
         // Detiene el movimiento temporalmente
         timerMovimiento->stop();
         spriteTimer->stop();
+
+        // Reducir la vida del jugador solo si no se ha reducido antes en este encuentro
+        if (!vidaReducida) {
+            jugadorObj->disminuirVida(5);
+            vidaReducida = true; // Establecer la bandera a true después de reducir la vida
+        }
+    } else {
+        // Si no hay colisión, restablecer la bandera para el próximo encuentro
+        vidaReducida = false;
     }
 }
 

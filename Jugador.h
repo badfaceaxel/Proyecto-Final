@@ -42,7 +42,8 @@ private:
     int contGolpe = 0;
     QTimer* timerGolpe = nullptr; // Temporizador para la animación del golpe
 
-
+    //VIDAAAAAAAAAA
+    int vida = 100;
 
 private slots:
 
@@ -71,12 +72,19 @@ public:
     //Reconocimiento
     QPointF obtenerPosicion() const;
 
+
+    //VIDAAAAAAAAAA
+    void disminuirVida(int cantidad);
+
 protected:
     QPixmap sprite;
     QPixmap spriteSheet;
 
 signals:
     void movimientoHorizontal(int desplazamiento);
+
+    //VIDAAAAAAAAAA
+
 
 };
 

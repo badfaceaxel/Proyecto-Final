@@ -2,6 +2,8 @@
     <qresource lang="Español" prefix="/Imagenes">
         <file>background.jpg</file>
         <file>SpriteADE.png</file>
+        <file>SpriteEnemigoADE.png</file>
+        <file>SpriteEnemigoAD.png</file>
     </qresource>
     <qresource prefix="/Imagenes"/>
 </RCC>
