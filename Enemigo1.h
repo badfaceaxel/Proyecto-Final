@@ -5,6 +5,7 @@
 #include <QGraphicsScene>
 #include <QGraphicsView>
 #include <QTimer>
+#include <QRandomGenerator>
 
 class Enemigo1 : public Jugador {
     Q_OBJECT
@@ -17,6 +18,14 @@ public:
 
     void setJugador(Jugador* jugador); // metodo para establecer el objeto Jugador
 
+    //instancias
+    void establecerPosicionInicial(qreal posicionX, qreal posicionY);
+    void inicializarTemporizador();
+    QTimer* timerMovimiento;
+    static QList<Enemigo1*> crearEnemigos(QGraphicsView* view, Jugador* jugador, QGraphicsScene* scene);
+
+    ~Enemigo1();
+    //void liberarMemoriaSprite();
 private slots:
     void moverEnLineaRecta();
     void actualizarSprite();
@@ -24,22 +33,25 @@ private slots:
 
 
 private:
-    QTimer* timerMovimiento;
+
     QTimer* spriteTimer;
     QTimer* spriteGolpeTimer;
     QTimer* timerColisionJugador;
 
-    int contMov = 0;
-    int contGolpe = 0;
+    int contMov = QRandomGenerator::global()->bounded(7);//cambiar depronto
+    int contGolpeEnemigo = 0;
     bool golpeando = false;
 
-    bool direccion = false; // 1 para derecha, -1 para izquierda
+    bool direccion = true;
     QGraphicsScene* scene; // Referencia a la escena
 
     Jugador* jugadorObj = nullptr; // Puntero al objeto Jugador
 
     //VIDAAAa
     bool vidaReducida = false;
+
+
+
 protected:
     QPixmap spriteEnem1;
 

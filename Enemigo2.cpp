@@ -22,17 +22,20 @@ Enemigo2::Enemigo2(QGraphicsView* view, QGraphicsItem* im)
     timerVerificarDistancia->start(50); // Ajusta el intervalo según sea necesario
 }
 
-void Enemigo2::setJugador(Jugador* jug) {
-    jugador = jug;
+void Enemigo2::setJugador(Jugador* jugador) {
+    jugadorObj = jugador;
 }
 
 void Enemigo2::actualizarPosicion() {
-    if (jugador) {
-        QPointF posicionJugador = jugador->obtenerPosicion();
+    if (jugadorObj) {
+        QPointF posicionJugador = jugadorObj->obtenerPosicion();
         QPointF posicionEnemigo = obtenerPosicion();
 
         // Calcular la distancia en valor absoluto en el eje x
         qreal distanciaX = qAbs(posicionJugador.x() - posicionEnemigo.x());
+
+        // Determinar la dirección del dardo
+        dardoHaciaLaDerecha = posicionJugador.x() > posicionEnemigo.x();
 
         // Si la distancia en x es menor o igual a 200, lanza el dardo
         if (distanciaX <= 200 && !dardoLanzado) {
@@ -77,52 +80,81 @@ void Enemigo2::actualizarAnimacionLanzar()
 
 void Enemigo2::lanzarDardoReal(const QPointF& posicionJugador)
 {
+    dardoHaciaLaDerecha = posicionJugador.x() < obtenerPosicion().x();
     // Crea un nuevo objeto QGraphicsPixmapItem para el dardo
-    QPixmap spriteDardo = spriteSheet.copy(6, 96, 6, 6);
+    QPixmap spriteDardo;
+    if (dardoHaciaLaDerecha) {
+        spriteDardo = spriteSheet.copy(6, 96, 6, 6);
+    } else {
+        // Reflejar el sprite del dardo horizontalmente
+        spriteDardo = spriteSheet.copy(6, 96, 6, 6).transformed(QTransform().scale(-1, 1));
+    }
     dardo = new QGraphicsPixmapItem(spriteDardo);
     scene()->addItem(dardo);
 
     // Establece la posición inicial del dardo
-    dardo->setPos(obtenerPosicion());
+    QPointF posicionInicial = obtenerPosicion();
+    dardo->setPos(posicionInicial);
 
-    // Calcula la dirección del dardo hacia el jugador
-    QLineF lineaDardo(obtenerPosicion(), posicionJugador);
-    qreal angulo = lineaDardo.angle();
+    // Calcula el ángulo de rotación del dardo
+    QPointF posicionEnemigo = obtenerPosicion();
+    QLineF linea(posicionEnemigo, posicionJugador);
+    qreal angulo = linea.angle();
 
-    // Determina si el jugador está a la izquierda o a la derecha del enemigo
-    bool jugadorALaIzquierda = posicionJugador.x() < obtenerPosicion().x();
-    qDebug() << posicionJugador.x() << obtenerPosicion().x();
-    qDebug() << jugadorALaIzquierda;
+    // Rota el sprite del dardo según el ángulo calculado
+    rotarSpriteDardo(angulo);
+
     // Crea un temporizador para mover el dardo
     QTimer* timerDardo = new QTimer(this);
+     // Inicia el temporizador para mover el dardo cada 50 ms
     connect(timerDardo, &QTimer::timeout, [=]() {
         // Mueve el dardo en la dirección calculada con una velocidad constante
-        qreal dx = qCos(qDegreesToRadians(angulo)) * 10;
-        qreal dy = qSin(qDegreesToRadians(angulo)) * 10;
+        qreal dx = (dardoHaciaLaDerecha ? 10 : -10);
+        dardo->moveBy(dx, 0); // Movimiento horizontal solamente
 
-        // Invierte el movimiento horizontal si el jugador está a la izquierda
-        if (jugadorALaIzquierda) {
-            dx = dx * (-1);
-            qDebug() << dx;
-
-        }
-        //qDebug() << dx;
-        dardo->moveBy(dx, dy);
-
-        // Verifica si el dardo ha recorrido 200 unidades de distancia
-        if (QLineF(obtenerPosicion(), dardo->pos()).length() >= 200) {
+        // Verifica si el dardo ha recorrido 200 unidades de distancia o ha colisionado con el Jugador
+        if (qAbs(dardo->pos().x() - posicionInicial.x()) >= 200 || dardo->collidesWithItem(jugadorObj)) {
+            if (!vidaReducida) {
+                qDebug() << "entro";
+                jugadorObj->disminuirVida(2); // Restar 2 de vida al Jugador
+                vidaReducida = true; // Establecer la bandera a true después de reducir la vida
+            }
             scene()->removeItem(dardo);
             delete dardo;
             dardo = nullptr;
             dardoLanzado = false;
             timerDardo->stop();
             delete timerDardo;
+            vidaReducida = false; // Restablecer la bandera para el próximo encuentro
         }
     });
+    timerDardo->start(50);
+}
 
-    timerDardo->start(50); // Inicia el temporizador para mover el dardo cada 50 ms
+void Enemigo2::rotarSpriteDardo(qreal angulo)
+{
+    // Crea un nuevo QGraphicsPixmapItem para el dardo rotado
+    QPixmap spriteDardoRotado = spriteSheet.copy(6, 96, 6, 6);
+    QTransform transform;
+    if (dardoHaciaLaDerecha) {
+        transform.rotate(-angulo);
+    } else {
+        transform.rotate(180 - angulo);
+    }
+    spriteDardoRotado = spriteDardoRotado.transformed(transform);
+
+    // Actualiza el sprite del dardo con la imagen rotada
+    dardo->setPixmap(spriteDardoRotado);
 }
 
 QPointF Enemigo2::obtenerPosicion() const {
     return pos();
 }
+
+void Enemigo2::verificarColisionJugador() {
+    if (collidesWithItem(jugador)) {
+        emit eliminarEnemigo();
+    }
+}
+
+

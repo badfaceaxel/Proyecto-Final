@@ -45,6 +45,8 @@ private:
     //VIDAAAAAAAAAA
     int vida = 100;
 
+    //instancias
+    bool posicionInicialEstablecida = true;
 private slots:
 
 

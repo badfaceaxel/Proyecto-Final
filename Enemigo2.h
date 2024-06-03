@@ -3,8 +3,9 @@
 
 #include "Jugador.h"
 
-class Enemigo2 : public Jugador
-{
+class Enemigo2 : public Jugador{
+    Q_OBJECT
+
 public:
     //void setSprite(bool lanzandoDardo);
     //void actualizarAnimacion();
@@ -20,12 +21,15 @@ public:
     QPointF obtenerPosicion() const;
     void setJugador(Jugador* jugador);
 
+    void verificarColisionJugador();
 
+    void rotarSpriteDardo(qreal angulo);
 
 private:
     //bool mov = false;
 
     bool dardoLanzado = false;
+    bool dardoHaciaLaDerecha = true;
 
     QTimer* timerAnimacion = nullptr;
     int contadorAnimacion = 0;
@@ -36,6 +40,11 @@ private:
     QTimer* timerVerificarDistancia = nullptr;
 
     int direccionDardo = 1;
+    bool vidaReducida = false;
+    Jugador* jugadorObj = nullptr;
+
+signals:
+    void eliminarEnemigo();
 };
 
 #endif // ENEMIGO2_H

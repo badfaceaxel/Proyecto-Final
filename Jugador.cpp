@@ -6,6 +6,8 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QDebug>
 #include "Enemigo1.h"
+#include "Enemigo2.h"
+
 
 //Definir el jugador y la imgen
 Jugador::Jugador(QGraphicsView *view,QGraphicsItem *im):QGraphicsPixmapItem(im)
@@ -178,7 +180,7 @@ void Jugador::setSprite(bool movimientoHaciaAdelante)
     if (golpeando) { // Si el jugador está golpeando
         spriteAncho = 128;
         spriteAlto = 128;
-        spriteX = 128;
+        spriteX = 0;
         spriteY = 384;
     } else if (enElAire) { // Si el jugador está en el aire (saltando)
         spriteAncho = 144;
@@ -201,7 +203,7 @@ void Jugador::setSprite(bool movimientoHaciaAdelante)
 
     QPixmap sprite;
     if (golpeando) {
-        sprite = spriteSheet.copy(spriteX * contGolpe, spriteY, spriteAncho, spriteAlto);
+        sprite = spriteSheet.copy(spriteAncho * contGolpe, spriteY, spriteAncho, spriteAlto);
         contGolpe++;
         if (contGolpe == 5) { // Hay 5 imágenes para la animación de golpe
             contGolpe = 0;
@@ -254,10 +256,10 @@ void Jugador::actualizarSalto()
             int objetoAlto = item->boundingRect().height();
 
             if ((dy-y-objetoAlto) < (y+objetoAlto) && dy > y+20 ) {
-                qDebug() << "ENTROOOOOOOOO";
+                //qDebug() << "ENTROOOOOOOOO";
                 // Colisión por encima del bloque
                 y = dy - boundingRect().height() ; // Ajustar la posición vertical del jugador
-                qDebug() << y;
+                //qDebug() << y;
                 velocidadInicial = 0; // Detener el movimiento vertical
                 enElAire = false; // Establecer la bandera enElAire como falsa
                 timerSalto->stop(); // Detener el temporizador de salto
@@ -272,15 +274,15 @@ void Jugador::actualizarSalto()
 
     //x += movimientoH * velocidadHorizontal + 5;
     setPos(x, y);
-    qDebug() << alturaSaltoInicial;
-    qDebug() << y;
+    //qDebug() << alturaSaltoInicial;
+    //qDebug() << y;
     if(y >= alturaSaltoInicial){
         enElAire = false;
     }
-    qDebug() << y;
+   //qDebug() << y;
         // Verificar si el jugador ha alcanzado la posición inicial del salto
     if (!enElAire && y >= alturaSaltoInicial && !Colision) {
-        qDebug() << "ENTROOOOOOOOO2";
+        //qDebug() << "ENTROOOOOOOOO2";
         y = alturaSaltoInicial; // Restaurar la posición inicial
         timerSalto->stop();
         setSprite(movimientoHaciaAdelante);
@@ -312,10 +314,17 @@ void Jugador::actualizarGolpe() {
         QList<QGraphicsItem*> colisionesItems = collidingItems();
         for (QGraphicsItem* item : colisionesItems) {
             // Verificar si el elemento es un Enemigo1
-            Enemigo1* enemigo = dynamic_cast<Enemigo1*>(item);
-            if (enemigo) {
-                // Emitir la señal para eliminar al enemigo
-                emit enemigo->eliminarEnemigo();
+            Enemigo1* enemigo1 = dynamic_cast<Enemigo1*>(item);
+            if (enemigo1) {
+                enemigo1->spriteSheet = QPixmap(); // Liberar la memoria de spriteSheet del enemigo1
+                emit enemigo1->eliminarEnemigo();
+            }
+
+            // Verificar si el elemento es un Enemigo2
+            Enemigo2* enemigo2 = dynamic_cast<Enemigo2*>(item);
+            if (enemigo2) {
+                enemigo2->spriteSheet = QPixmap(); // Liberar la memoria de spriteSheet del enemigo2
+                emit enemigo2->eliminarEnemigo();
             }
         }
     }

@@ -4,7 +4,7 @@ Enemigo1::Enemigo1(QGraphicsView* view, QGraphicsItem* im)
     : Jugador(view, im) {
 
     // Inicializar la dirección de movimiento (true para moverse, false para detenerse)
-    direccion = true; // Inicialmente se mueve hacia la izquierda
+    direccion = false;
 
     // Cargar la hoja de sprites del enemigo
     spriteSheet.load(":/Imagenes/SpriteEnemigoADE.png");
@@ -12,11 +12,12 @@ Enemigo1::Enemigo1(QGraphicsView* view, QGraphicsItem* im)
     setPixmap(spriteEnem1);
     setSprite(direccion);
 
+    //qDebug() << posicionX << posicionY;
+    //(posicionX, posicionY);
 
     // Inicializar el temporizador para el movimiento
     timerMovimiento = new QTimer(this);
     connect(timerMovimiento, &QTimer::timeout, this, &Enemigo1::moverEnLineaRecta);
-    timerMovimiento->start(50); // Ajusta el intervalo según sea necesario
 
     // Inicializar el temporizador para la animación del sprite
     spriteTimer = new QTimer(this);
@@ -32,7 +33,38 @@ Enemigo1::Enemigo1(QGraphicsView* view, QGraphicsItem* im)
     connect(timerColisionJugador, &QTimer::timeout, this, &Enemigo1::verificarColisionJugador);
     timerColisionJugador->start(50); // Ajusta el intervalo según sea necesario
 
-    moveBy(600, 35);
+    //moveBy(600, 35);
+}
+
+QList<Enemigo1*> Enemigo1::crearEnemigos(QGraphicsView* view, Jugador* jugador, QGraphicsScene* scene) {
+    QList<Enemigo1*> enemigos;
+    QVector<QPointF> posicionesIniciales = {
+        QPointF(600, 235),
+        QPointF(200, 120),
+        QPointF(600, -10)
+    };
+
+    for (int i = 0; i < posicionesIniciales.size(); ++i) {
+        Enemigo1* enemigo = new Enemigo1(view);
+        scene->addItem(enemigo);
+        enemigo->establecerPosicionInicial(posicionesIniciales[i].x(), posicionesIniciales[i].y());
+        enemigo->setJugador(jugador);
+
+        // Iniciar el temporizador de movimiento solo para la primera y la tercera instancia
+        if (i == 0) {
+            enemigo->timerMovimiento->start(50);
+        }
+
+        enemigos.append(enemigo);
+    }
+
+    return enemigos;
+}
+
+void Enemigo1::establecerPosicionInicial(qreal posicionX, qreal posicionY) {
+    qDebug() << "Estableciendo posición inicial:" << posicionX << posicionY;
+    setPos(posicionX, posicionY);
+    qDebug() << "Posición establecida:" << pos();
 }
 
 void Enemigo1::setSprite(bool direccion) {
@@ -58,15 +90,13 @@ void Enemigo1::actualizarSprite() {
 
 void Enemigo1::moverEnLineaRecta() {
     // Mover el enemigo en línea recta hacia la izquierda
-    if (direccion) {
-        moveBy(-5, 0);
-        jugadorObj->setFocus();
-        // Detener el movimiento cuando el enemigo alcance la posición x = 200
-        if (QGraphicsPixmapItem::x() <= 200) {
-            direccion = false;
-            timerMovimiento->stop();
-            spriteTimer->stop();
-        }
+
+    setPos(QGraphicsPixmapItem::x() - 5, QGraphicsPixmapItem::y()); // Mover hacia la izquierda
+    // Invertir la dirección cuando el enemigo alcanza la posición límite
+    if (QGraphicsPixmapItem::x() <= 200 || QGraphicsPixmapItem::x() >= 600) {
+        //direccion = !direccion; // Invertir la dirección
+        timerMovimiento->stop();
+        spriteTimer->stop();
     }
 }
 
@@ -78,15 +108,15 @@ void Enemigo1::setGolpeandoSprite() {
     int spriteY = 96; // Usar el sprite de golpe
 
     // Actualizar el sprite del enemigo
-    QPixmap spriteEnem1 = spriteSheet.copy(contGolpe * spriteAncho, spriteY, spriteAncho, spriteAlto);
+    QPixmap spriteEnem1 = spriteSheet.copy(contGolpeEnemigo * spriteAncho, spriteY, spriteAncho, spriteAlto);
     setPixmap(spriteEnem1);
 }
 
 void Enemigo1::actualizarSpriteGolpe() {
     // Incrementar el índice del sprite para la animación de golpe
-    contGolpe++;
-    if (contGolpe == 5) { // Hay 5 imágenes para la animación de golpe
-        contGolpe = 0;
+    contGolpeEnemigo++;
+    if (contGolpeEnemigo == 5) { // Hay 5 imágenes para la animación de golpe
+        contGolpeEnemigo = 0;
         golpeando = false; // Termina la animación de golpe
         spriteGolpeTimer->stop(); // Detiene el temporizador
         jugadorObj->setFocus();
@@ -122,4 +152,9 @@ void Enemigo1::verificarColisionJugador() {
 
 void Enemigo1::setJugador(Jugador* jugador) {
     jugadorObj = jugador;
+}
+
+Enemigo1::~Enemigo1() {
+    // Liberar la memoria ocupada por spriteSheet
+    spriteSheet = QPixmap();
 }

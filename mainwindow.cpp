@@ -29,20 +29,31 @@ MainWindow::MainWindow(QWidget *parent)
     //qDebug() << ui->graphicsView->size()<<" "<<scene->sceneRect();
 
     //PERSONAJES AÑADIR
-    Enemigo1* enemigo = new Enemigo1(ui->graphicsView);
-    scene->addItem(enemigo);
-    enemigo->setPos(600, 200);
-    enemigo->setJugador(jug1);
 
-    connect(enemigo, &Enemigo1::eliminarEnemigo, [=]() {
-        scene->removeItem(enemigo);
-        delete enemigo;
-    });
+    // Crear enemigos
+    enemies = Enemigo1::crearEnemigos(ui->graphicsView, jug1, scene);
 
+    // Conectar la señal de eliminarEnemigo para cada instancia
+    for (Enemigo1* enemigo : qAsConst(enemies)) {
+        connect(enemigo, &Enemigo1::eliminarEnemigo, [this, enemigo, scene]() {
+            scene->removeItem(enemigo);
+            delete enemigo;
+            enemies.removeOne(enemigo);
+        });
+    }
+
+
+    //------------------------------
     Enemigo2* enemigo2 = new Enemigo2(ui->graphicsView);
     scene->addItem(enemigo2);
     enemigo2->setPos(600, 135);
     enemigo2->setJugador(jug1);
+
+    // Conectar la señal de eliminarEnemigo
+    connect(enemigo2, &Enemigo2::eliminarEnemigo, [this, enemigo2, scene]() {
+        scene->removeItem(enemigo2);
+        delete enemigo2;
+    });
 
     jug1->setFlag(QGraphicsItem::ItemIsFocusable);
     jug1->setFocus();
@@ -52,6 +63,17 @@ MainWindow::MainWindow(QWidget *parent)
     cuadrado->setBrush(Qt::red);
     scene->addItem(cuadrado);
     cuadrado->setPos(500, 230);
+
+    QGraphicsRectItem* espacioEnem1 = new QGraphicsRectItem(0, 0, 200, 20);
+    espacioEnem1->setBrush(Qt::red);
+    scene->addItem(espacioEnem1);
+    espacioEnem1->setPos(200, 210);
+
+    QGraphicsRectItem* espacioEnem12 = new QGraphicsRectItem(0, 0, 80, 20);
+    espacioEnem12->setBrush(Qt::red);
+    scene->addItem(espacioEnem12);
+    espacioEnem12->setPos(600, 80);
+
 
     QGraphicsRectItem* suelo = new QGraphicsRectItem(0, 0, 800, 20);
     suelo->setBrush(Qt::red);
@@ -68,5 +90,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
+    qDeleteAll(this->enemies);
+    this->enemies.clear();
     delete ui;
 }
