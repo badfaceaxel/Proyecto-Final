@@ -40,6 +40,10 @@ Jugador::Jugador(QGraphicsView *view,QGraphicsItem *im):QGraphicsPixmapItem(im)
     connect(timerGolpe, &QTimer::timeout, this, &Jugador::actualizarGolpe); // Conectar la señal timeout del temporizador a la función actualizarGolpe
     view->setMouseTracking(true); // Habilitar el seguimiento del mouse en la vista
     view->viewport()->installEventFilter(this); // Instalar un filtro de eventos en el viewport
+
+    timerCaida = new QTimer(this);
+    connect(timerCaida, &QTimer::timeout, this, &Jugador::actualizarCaida);
+    timerCaida->start(10);
 }
 
 
@@ -126,6 +130,7 @@ void Jugador::keyPressEvent(QKeyEvent *event)
             dy = -alturaSalto; // Establece el valor inicial de dy para el salto
             alturaSaltoInicial = y;
             enElAire = true; // Establece la bandera enElAire como verdadera
+            timerCaida->stop();
             timerSalto->start(450); // Inicia el temporizador de salto
         }
         break;
@@ -263,6 +268,7 @@ void Jugador::actualizarSalto()
                 velocidadInicial = 0; // Detener el movimiento vertical
                 enElAire = false; // Establecer la bandera enElAire como falsa
                 timerSalto->stop(); // Detener el temporizador de salto
+                timerCaida->start(10);
                 Colision = true;
                 setSprite(movimientoHaciaAdelante);
                 break;
@@ -316,14 +322,18 @@ void Jugador::actualizarGolpe() {
             // Verificar si el elemento es un Enemigo1
             Enemigo1* enemigo1 = dynamic_cast<Enemigo1*>(item);
             if (enemigo1) {
-                enemigo1->spriteSheet = QPixmap(); // Liberar la memoria de spriteSheet del enemigo1
+                enemigo1->setGolpeandoSprite();
+                enemigo1->setVisible(false); // Hacer al enemigo invisible antes de emitir la señal
+                enemigo1->spriteSheet = QPixmap();
                 emit enemigo1->eliminarEnemigo();
             }
 
             // Verificar si el elemento es un Enemigo2
             Enemigo2* enemigo2 = dynamic_cast<Enemigo2*>(item);
             if (enemigo2) {
-                enemigo2->spriteSheet = QPixmap(); // Liberar la memoria de spriteSheet del enemigo2
+                enemigo2->setAnimacionLanzamientoSprite();
+                enemigo2->setVisible(false); // Hacer al enemigo invisible antes de emitir la señal
+                enemigo2->spriteSheet = QPixmap();
                 emit enemigo2->eliminarEnemigo();
             }
         }
@@ -356,4 +366,33 @@ void Jugador::disminuirVida(int cantidad) {
         // Aquí puedes agregar código para manejar cuando el jugador se queda sin vida
         qDebug() << "El jugador ha perdido toda su vida";
     }
+}
+
+void Jugador::actualizarCaida()
+{
+    // Verificar colisiones con objetos y ajustar la posición si es necesario
+    QList<QGraphicsItem*> colisionesItems = collidingItems();
+    bool colisionSuelo = false;
+    for (QGraphicsItem* item : colisionesItems) {
+        if (item->type() == QGraphicsRectItem::Type) {
+            QPointF posicionObjetoColision = item->pos();
+            int dy = posicionObjetoColision.y();
+            int objetoAlto = item->boundingRect().height();
+
+            if (dy - y - objetoAlto <= boundingRect().height() && dy > y) {
+                // Colisión con el suelo
+                y = dy - boundingRect().height();
+                velocidadVertical = 0;
+                colisionSuelo = true;
+                break;
+            }
+        }
+    }
+
+    if (!colisionSuelo) {
+        velocidadVertical += aceleracionGravedad;
+        y += velocidadVertical;
+    }
+
+    setPos(x, y);
 }

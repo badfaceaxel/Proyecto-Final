@@ -31,11 +31,12 @@ MainWindow::MainWindow(QWidget *parent)
     //PERSONAJES AÑADIR
 
     // Crear enemigos
-    enemies = Enemigo1::crearEnemigos(ui->graphicsView, jug1, scene);
+    crearEnemigos(ui->graphicsView, jug1, scene);
 
     // Conectar la señal de eliminarEnemigo para cada instancia
     for (Enemigo1* enemigo : qAsConst(enemies)) {
         connect(enemigo, &Enemigo1::eliminarEnemigo, [this, enemigo, scene]() {
+            enemigo->setVisible(false);
             scene->removeItem(enemigo);
             delete enemigo;
             enemies.removeOne(enemigo);
@@ -51,8 +52,11 @@ MainWindow::MainWindow(QWidget *parent)
 
     // Conectar la señal de eliminarEnemigo
     connect(enemigo2, &Enemigo2::eliminarEnemigo, [this, enemigo2, scene]() {
+        enemigo2->setVisible(false);
         scene->removeItem(enemigo2);
         delete enemigo2;
+        //enemies.removeOne(enemigo2);
+
     });
 
     jug1->setFlag(QGraphicsItem::ItemIsFocusable);
@@ -67,7 +71,7 @@ MainWindow::MainWindow(QWidget *parent)
     QGraphicsRectItem* espacioEnem1 = new QGraphicsRectItem(0, 0, 200, 20);
     espacioEnem1->setBrush(Qt::red);
     scene->addItem(espacioEnem1);
-    espacioEnem1->setPos(200, 210);
+    espacioEnem1->setPos(200, 220);
 
     QGraphicsRectItem* espacioEnem12 = new QGraphicsRectItem(0, 0, 80, 20);
     espacioEnem12->setBrush(Qt::red);
@@ -86,6 +90,28 @@ MainWindow::MainWindow(QWidget *parent)
     timerColisiones->start(16); // Verifica colisiones cada 16
     connect(jug1->timerSalto, &QTimer::timeout, jug1, &Jugador::actualizarSalto);
 
+}
+
+void MainWindow::crearEnemigos(QGraphicsView* view, Jugador* jugador, QGraphicsScene* scene) {
+    QVector<QPointF> posicionesIniciales = {
+        QPointF(600, 235),
+        QPointF(200, 130),
+        QPointF(600, -10)
+    };
+
+    for (int i = 0; i < posicionesIniciales.size(); ++i) {
+        Enemigo1* enemigo = new Enemigo1(view);
+        scene->addItem(enemigo);
+        enemigo->establecerPosicionInicial(posicionesIniciales[i].x(), posicionesIniciales[i].y());
+        enemigo->setJugador(jugador);
+
+        // Iniciar el temporizador de movimiento solo para la primera y la tercera instancia
+        if (i == 0) {
+            enemigo->timerMovimiento->start(50);
+        }
+
+        enemies.append(enemigo);
+    }
 }
 
 MainWindow::~MainWindow()

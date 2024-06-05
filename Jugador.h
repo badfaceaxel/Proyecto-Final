@@ -42,7 +42,7 @@ private:
     int contGolpe = 0;
     QTimer* timerGolpe = nullptr; // Temporizador para la animación del golpe
 
-    //VIDAAAAAAAAAA
+    //Vida
     int vida = 100;
 
     //instancias
@@ -75,8 +75,14 @@ public:
     QPointF obtenerPosicion() const;
 
 
-    //VIDAAAAAAAAAA
+    //Vida
     void disminuirVida(int cantidad);
+
+    //Verificaciones
+    QTimer* timerCaida = nullptr;
+    virtual void actualizarCaida();
+    double velocidadVertical = 0.0;
+    double aceleracionGravedad = 0.3;
 
 protected:
     QPixmap sprite;
@@ -85,7 +91,6 @@ protected:
 signals:
     void movimientoHorizontal(int desplazamiento);
 
-    //VIDAAAAAAAAAA
 
 
 };

@@ -22,10 +22,12 @@ public:
     void establecerPosicionInicial(qreal posicionX, qreal posicionY);
     void inicializarTemporizador();
     QTimer* timerMovimiento;
-    static QList<Enemigo1*> crearEnemigos(QGraphicsView* view, Jugador* jugador, QGraphicsScene* scene);
+
 
     ~Enemigo1();
     //void liberarMemoriaSprite();
+    bool golpeando = false;
+
 private slots:
     void moverEnLineaRecta();
     void actualizarSprite();
@@ -40,7 +42,7 @@ private:
 
     int contMov = QRandomGenerator::global()->bounded(7);//cambiar depronto
     int contGolpeEnemigo = 0;
-    bool golpeando = false;
+
 
     bool direccion = true;
     QGraphicsScene* scene; // Referencia a la escena
@@ -54,6 +56,9 @@ private:
 
 protected:
     QPixmap spriteEnem1;
+    void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
+    bool eventFilter(QObject *obj, QEvent *event) override;
+    void actualizarCaida() override;
 
 signals:
     void eliminarEnemigo();

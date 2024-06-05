@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QTimer>
 #include "Particula.h"
+#include "Enemigo1.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -23,6 +24,9 @@ private slots:
 private:
     Ui::MainWindow *ui;
     QTimer *timer;
+    QList<Enemigo1*> enemies;
+    void crearEnemigos(QGraphicsView* view, Jugador* jugador, QGraphicsScene* scene);
+
 
     //FONDO
     QGraphicsScene *scene;
@@ -30,7 +34,7 @@ private:
     int anchoFondo;
     int anchoCuadrante;
 
-    void desplazarFondo(int desplazamiento);
+
 };
 
 #endif // MAINWINDOW_H

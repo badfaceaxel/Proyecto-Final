@@ -36,35 +36,10 @@ Enemigo1::Enemigo1(QGraphicsView* view, QGraphicsItem* im)
     //moveBy(600, 35);
 }
 
-QList<Enemigo1*> Enemigo1::crearEnemigos(QGraphicsView* view, Jugador* jugador, QGraphicsScene* scene) {
-    QList<Enemigo1*> enemigos;
-    QVector<QPointF> posicionesIniciales = {
-        QPointF(600, 235),
-        QPointF(200, 120),
-        QPointF(600, -10)
-    };
-
-    for (int i = 0; i < posicionesIniciales.size(); ++i) {
-        Enemigo1* enemigo = new Enemigo1(view);
-        scene->addItem(enemigo);
-        enemigo->establecerPosicionInicial(posicionesIniciales[i].x(), posicionesIniciales[i].y());
-        enemigo->setJugador(jugador);
-
-        // Iniciar el temporizador de movimiento solo para la primera y la tercera instancia
-        if (i == 0) {
-            enemigo->timerMovimiento->start(50);
-        }
-
-        enemigos.append(enemigo);
-    }
-
-    return enemigos;
-}
-
 void Enemigo1::establecerPosicionInicial(qreal posicionX, qreal posicionY) {
-    qDebug() << "Estableciendo posición inicial:" << posicionX << posicionY;
+    //qDebug() << "Estableciendo posición inicial:" << posicionX << posicionY;
     setPos(posicionX, posicionY);
-    qDebug() << "Posición establecida:" << pos();
+    //qDebug() << "Posición establecida:" << pos();
 }
 
 void Enemigo1::setSprite(bool direccion) {
@@ -103,6 +78,8 @@ void Enemigo1::moverEnLineaRecta() {
 //GOLPE
 
 void Enemigo1::setGolpeandoSprite() {
+
+    //qDebug() << "entro";
     int spriteAncho = 96;
     int spriteAlto = 96;
     int spriteY = 96; // Usar el sprite de golpe
@@ -110,10 +87,12 @@ void Enemigo1::setGolpeandoSprite() {
     // Actualizar el sprite del enemigo
     QPixmap spriteEnem1 = spriteSheet.copy(contGolpeEnemigo * spriteAncho, spriteY, spriteAncho, spriteAlto);
     setPixmap(spriteEnem1);
+
 }
 
 void Enemigo1::actualizarSpriteGolpe() {
     // Incrementar el índice del sprite para la animación de golpe
+
     contGolpeEnemigo++;
     if (contGolpeEnemigo == 5) { // Hay 5 imágenes para la animación de golpe
         contGolpeEnemigo = 0;
@@ -121,7 +100,6 @@ void Enemigo1::actualizarSpriteGolpe() {
         spriteGolpeTimer->stop(); // Detiene el temporizador
         jugadorObj->setFocus();
     }
-
     setGolpeandoSprite();
 }
 
@@ -157,4 +135,19 @@ void Enemigo1::setJugador(Jugador* jugador) {
 Enemigo1::~Enemigo1() {
     // Liberar la memoria ocupada por spriteSheet
     spriteSheet = QPixmap();
+}
+
+void Enemigo1::mousePressEvent(QGraphicsSceneMouseEvent *event) {
+    //qDebug() << "Hola";
+
+}
+
+bool Enemigo1::eventFilter(QObject *obj, QEvent *event) {
+    //qDebug() << "2.0HOLA";
+    return false;
+
+}
+
+void Enemigo1::actualizarCaida() {
+    //qDebug() << "hola";
 }

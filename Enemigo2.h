@@ -15,6 +15,7 @@ public:
     void actualizarPosicion();
     void lanzarDardo(const QPointF& posicionJugador);
     //aaaaaaaaa
+    void setAnimacionLanzamientoSprite();
     void actualizarAnimacionLanzar();
     void lanzarDardoReal(const QPointF& posicionJugador);
 
@@ -35,13 +36,19 @@ private:
     int contadorAnimacion = 0;
 
 
-    QGraphicsPixmapItem* dardo = nullptr;
+    QGraphicsPolygonItem* dardo = nullptr;
     Jugador* jugador = nullptr;
     QTimer* timerVerificarDistancia = nullptr;
 
     int direccionDardo = 1;
     bool vidaReducida = false;
     Jugador* jugadorObj = nullptr;
+
+protected:
+    void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
+    bool eventFilter(QObject *obj, QEvent *event) override;
+    void actualizarCaida() override;
+
 
 signals:
     void eliminarEnemigo();
