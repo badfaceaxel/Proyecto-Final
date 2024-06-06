@@ -4,6 +4,8 @@
         <file>SpriteADE.png</file>
         <file>SpriteEnemigoADE.png</file>
         <file>SpriteEnemigoAD.png</file>
+        <file>SpriteJefeA.png</file>
+        <file>SpriteJefeB.png</file>
     </qresource>
     <qresource prefix="/Imagenes"/>
 </RCC>

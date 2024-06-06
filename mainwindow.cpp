@@ -4,14 +4,18 @@
 #include "jugador.h"
 #include "Enemigo1.h"
 #include "Enemigo2.h"
+#include "Jefe1.h"
+#include "Jefe2.h"
 #include <qdebug.h>
 #include <QLabel>
 #include <QPixmap>
 
-MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent)
-    , ui(new Ui::MainWindow) //La interfaz diseñada en Qt Designer
+MainWindow::MainWindow(int salto, QWidget *parent)
+    : QMainWindow(parent), ui(new Ui::MainWindow), m_salto(salto) //La interfaz diseñada en Qt Designer
 {
+
+    qDebug() << m_salto;
+
     ui->setupUi(this); //This hace referencia a la clase MainWindow, configura la interfaz de usuario definida en el Qt designer
 
     QGraphicsScene *scene = new QGraphicsScene(this); // se debe crear una escena para manejar elementos gráficos
@@ -51,13 +55,24 @@ MainWindow::MainWindow(QWidget *parent)
     enemigo2->setJugador(jug1);
 
     // Conectar la señal de eliminarEnemigo
-    connect(enemigo2, &Enemigo2::eliminarEnemigo, [this, enemigo2, scene]() {
+    /*connect(enemigo2, &Enemigo2::eliminarEnemigo, [this, enemigo2, scene]() {
         enemigo2->setVisible(false);
         scene->removeItem(enemigo2);
         delete enemigo2;
-        //enemies.removeOne(enemigo2);
+    });*/
 
-    });
+    //------------------------------
+    //JEFES
+    Jefe1* jefe1 = new Jefe1(ui->graphicsView);
+    scene->addItem(jefe1);
+    jefe1->setPos(500, 200);
+    jefe1->setJugador(jug1);
+
+    Jefe2* jefe2 = new Jefe2(ui->graphicsView);
+    scene->addItem(jefe2);
+    jefe2->setPos(500, 200);
+    jefe2->setJugador(jug1);
+
 
     jug1->setFlag(QGraphicsItem::ItemIsFocusable);
     jug1->setFocus();
@@ -95,7 +110,7 @@ MainWindow::MainWindow(QWidget *parent)
 void MainWindow::crearEnemigos(QGraphicsView* view, Jugador* jugador, QGraphicsScene* scene) {
     QVector<QPointF> posicionesIniciales = {
         QPointF(600, 235),
-        QPointF(200, 130),
+        QPointF(m_salto, 130),
         QPointF(600, -10)
     };
 

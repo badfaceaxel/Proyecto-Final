@@ -12,9 +12,6 @@ class Enemigo1 : public Jugador {
 
 public:
     Enemigo1(QGraphicsView* view, QGraphicsItem* im = nullptr);
-    void setSprite(bool direccion); // Declaración del método setSprite
-    void setGolpeandoSprite();//para actualizar el sprite de golpe
-    void verificarColisionJugador();
 
     void setJugador(Jugador* jugador); // metodo para establecer el objeto Jugador
 
@@ -26,13 +23,16 @@ public:
 
     ~Enemigo1();
     //void liberarMemoriaSprite();
-    bool golpeando = false;
+
 
 private slots:
     void moverEnLineaRecta();
     void actualizarSprite();
     void actualizarSpriteGolpe(); // actualizar el sprite de golpe
 
+    void setSprite(bool direccion); // Declaración del método setSprite
+    void setGolpeandoSprite();//para actualizar el sprite de golpe
+    void verificarColisionJugador();
 
 private:
 
@@ -43,11 +43,9 @@ private:
     int contMov = QRandomGenerator::global()->bounded(7);//cambiar depronto
     int contGolpeEnemigo = 0;
 
-
+    bool golpeando = false;
     bool direccion = true;
-    QGraphicsScene* scene; // Referencia a la escena
 
-    Jugador* jugadorObj = nullptr; // Puntero al objeto Jugador
 
     //VIDAAAa
     bool vidaReducida = false;
@@ -59,6 +57,9 @@ protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
     bool eventFilter(QObject *obj, QEvent *event) override;
     void actualizarCaida() override;
+
+    Jugador* jugadorObj = nullptr; // Puntero al objeto Jugador
+    QGraphicsScene* scene; // Referencia a la escena
 
 signals:
     void eliminarEnemigo();

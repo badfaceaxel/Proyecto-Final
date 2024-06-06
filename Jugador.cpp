@@ -322,7 +322,6 @@ void Jugador::actualizarGolpe() {
             // Verificar si el elemento es un Enemigo1
             Enemigo1* enemigo1 = dynamic_cast<Enemigo1*>(item);
             if (enemigo1) {
-                enemigo1->setGolpeandoSprite();
                 enemigo1->setVisible(false); // Hacer al enemigo invisible antes de emitir la señal
                 enemigo1->spriteSheet = QPixmap();
                 emit enemigo1->eliminarEnemigo();
@@ -330,10 +329,10 @@ void Jugador::actualizarGolpe() {
 
             // Verificar si el elemento es un Enemigo2
             Enemigo2* enemigo2 = dynamic_cast<Enemigo2*>(item);
-            if (enemigo2) {
-                enemigo2->setAnimacionLanzamientoSprite();
+            if (enemigo2 != nullptr && !enemigo2->yaEliminado) {
                 enemigo2->setVisible(false); // Hacer al enemigo invisible antes de emitir la señal
                 enemigo2->spriteSheet = QPixmap();
+                enemigo2->yaEliminado = true;
                 emit enemigo2->eliminarEnemigo();
             }
         }

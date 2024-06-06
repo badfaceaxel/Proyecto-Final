@@ -7,27 +7,21 @@ class Enemigo2 : public Jugador{
     Q_OBJECT
 
 public:
-    //void setSprite(bool lanzandoDardo);
-    //void actualizarAnimacion();
 
     Enemigo2(QGraphicsView* view, QGraphicsItem* im = nullptr);
 
-    void actualizarPosicion();
     void lanzarDardo(const QPointF& posicionJugador);
-    //aaaaaaaaa
     void setAnimacionLanzamientoSprite();
     void actualizarAnimacionLanzar();
     void lanzarDardoReal(const QPointF& posicionJugador);
 
-    QPointF obtenerPosicion() const;
+
     void setJugador(Jugador* jugador);
-
-    void verificarColisionJugador();
-
-    void rotarSpriteDardo(qreal angulo);
+    bool yaEliminado = false;
 
 private:
-    //bool mov = false;
+    QPointF obtenerPosicion() const;
+    void actualizarPosicion();
 
     bool dardoLanzado = false;
     bool dardoHaciaLaDerecha = true;
@@ -42,12 +36,15 @@ private:
 
     int direccionDardo = 1;
     bool vidaReducida = false;
-    Jugador* jugadorObj = nullptr;
+
+
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
     bool eventFilter(QObject *obj, QEvent *event) override;
     void actualizarCaida() override;
+
+    Jugador* jugadorObj = nullptr;
 
 
 signals:

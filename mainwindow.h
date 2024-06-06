@@ -14,7 +14,7 @@ class MainWindow : public QMainWindow {
     Q_OBJECT
 
 public:
-    MainWindow(QWidget *parent = nullptr);
+    MainWindow(int salto, QWidget *parent = nullptr);
     ~MainWindow();
     bool clic;
 
@@ -34,6 +34,7 @@ private:
     int anchoFondo;
     int anchoCuadrante;
 
+    int m_salto;
 
 };
 

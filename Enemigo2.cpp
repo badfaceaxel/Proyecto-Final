@@ -38,7 +38,7 @@ void Enemigo2::actualizarPosicion() {
         // Calcular la distancia en valor absoluto en el eje x e y
         qreal distanciaX = qAbs(posicionJugador.x() - posicionEnemigo.x());
         qreal distanciaY = qAbs(posicionJugador.y() - posicionEnemigo.y());
-        qDebug() << posicionJugador.y() << posicionEnemigo.y();
+        //qDebug() << posicionJugador.y() << posicionEnemigo.y();
         //qDebug() << distanciaX << distanciaY;
         // Determinar la dirección del dardo
         dardoHaciaLaDerecha = posicionJugador.x() > posicionEnemigo.x();
@@ -132,25 +132,19 @@ void Enemigo2::lanzarDardoReal(const QPointF& posicionJugador)
             scene()->removeItem(dardo);
             delete dardo;
             dardo = nullptr;
+
             dardoLanzado = false;
             timerDardo->stop();
             delete timerDardo;
             vidaReducida = false; // Restablecer la bandera para el próximo encuentro
         }
     });
-    timerDardo->start(50);
+        timerDardo->start(50);
 }
 
 QPointF Enemigo2::obtenerPosicion() const {
     return pos();
 }
-
-void Enemigo2::verificarColisionJugador() {
-    if (collidesWithItem(jugador)) {
-        emit eliminarEnemigo();
-    }
-}
-
 
 void Enemigo2::mousePressEvent(QGraphicsSceneMouseEvent *event) {
     //qDebug() << "Hola";
