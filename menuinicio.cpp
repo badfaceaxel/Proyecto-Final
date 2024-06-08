@@ -1,6 +1,6 @@
 #include "menuinicio.h"
 #include "ui_menuinicio.h"
-#include "level1.h"  // Agrega esta línea aquí
+#include "level1.h"
 #include "jugador.h"
 #include "nicknamedialog.h"
 
@@ -113,7 +113,6 @@ MenuInicio::~MenuInicio()
     delete clickSound;
     delete music;
     delete level1;
-
 }
 
 void MenuInicio::adjustBackground()
@@ -161,17 +160,8 @@ void MenuInicio::adjustButtons()
 
 void MenuInicio::onBotonInicioClicked()
 {
-    // iniciar el juego
     clickSound->play();
     qDebug() << "Botón Inicio presionado";
-    /*
-    // Crea y muestra la ventana del nivel 1
-    if (!level1) {
-        level1 = new Level1();
-    }
-    level1->show();
-    this->hide();  // Oculta la ventana del menú
-    */
 
     NicknameDialog dialog(this);
     int result = dialog.exec();
@@ -186,7 +176,25 @@ void MenuInicio::onBotonInicioClicked()
 
             // Asigna el nickname al jugador
             if (level1->getJugador()) {
-                level1->getJugador()->setNickname(nickname);
+                Jugador* jugador = level1->getJugador();
+                jugador->setNickname(nickname);
+
+                // Verifica si el nickname ya existe en el archivo
+                jugador->cargarDatos();
+
+                bool nicknameExistente = false;
+                for (const QPair<QString, int>& registro : jugador->getRegistros()) {
+                    if (registro.first == nickname) {
+                        nicknameExistente = true;
+                        break;
+                    }
+                }
+
+                if (!nicknameExistente) {
+                    // El nickname no existe en el archivo, guardar los datos
+                    jugador->setPuntuacion(0); // Establece la puntuación inicial en 0
+                    jugador->guardarDatos();
+                }
             }
 
             level1->show();
@@ -196,10 +204,7 @@ void MenuInicio::onBotonInicioClicked()
             QMessageBox::warning(this, "Error", "Por favor, ingresa un nickname.");
         }
     }
-
 }
-
-
 
 
 
@@ -258,3 +263,5 @@ void MenuInicio::adjustSign()
     // Colocar la firma en la esquina inferior derecha
     signItem->setPos(30, 5); // Ajustar el offset (10) según sea necesario
 }
+
+

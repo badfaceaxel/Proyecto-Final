@@ -15,6 +15,7 @@
 #include <QSoundEffect>
 #include <QMediaPlayer>
 #include <QMediaMetaData>
+#include <QComboBox>
 
 // Agrega esta línea para la declaración anticipada
 class Level1;  // Esto le dice al compilador que Level1 es una clase, sin dar detalles
@@ -46,6 +47,8 @@ private slots:
     void onBotonScoreClicked();
     void onBotonSalirClicked();
 
+public slots:
+
 
 
 private:
@@ -63,6 +66,7 @@ private:
     QPixmap botonScoreRojo;
     QPixmap botonSalirNormal;
     QPixmap botonSalirRojo;
+
     QSoundEffect* hoverSound;
     QSoundEffect* clickSound;
     QSoundEffect* music;
@@ -71,8 +75,12 @@ private:
 
 
 
+
     void adjustBackground();
     void adjustButtons();
     void adjustSign();
+
+signals:
+
 };
 #endif // MENUINICIO_H
