@@ -19,6 +19,8 @@
 
 // Agrega esta línea para la declaración anticipada
 class Level1;  // Esto le dice al compilador que Level1 es una clase, sin dar detalles
+class Level2;  // Esto le dice al compilador que Level1 es una clase, sin dar detalles
+class Level3;  // Esto le dice al compilador que Level1 es una clase, sin dar detalles
 class Jugador;
 class nicknamedialog;
 
@@ -72,6 +74,8 @@ private:
     QSoundEffect* music;
 
     Level1 *level1;
+    Level2 *level2;
+    Level3 *level3;
 
 
 

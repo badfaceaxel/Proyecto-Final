@@ -1,14 +1,20 @@
 #include "menuinicio.h"
 #include "ui_menuinicio.h"
 #include "level1.h"
+#include "level2.h"
+#include "level3.h"
 #include "jugador.h"
 #include "nicknamedialog.h"
 #include "puntuacionesdialog.h"
+#include "nivelselecciondialog.h"
 
 MenuInicio::MenuInicio(QWidget *parent)   ////
     : QMainWindow(parent)
     , ui(new Ui::MenuInicio)
     , level1(nullptr)  // Inicializa level1 a nullptr
+    , level2(nullptr)  // Inicializa level2 a nullptr
+    , level3(nullptr)  // Inicializa level2 a nullptr
+
 
 {
     ui->setupUi(this);
@@ -114,6 +120,9 @@ MenuInicio::~MenuInicio()
     delete clickSound;
     delete music;
     delete level1;
+    delete level2;
+    delete level3;
+
 }
 
 void MenuInicio::adjustBackground()
@@ -170,13 +179,13 @@ void MenuInicio::onBotonInicioClicked() {
         QString nickname = dialog.getNickname();
         if (!nickname.isEmpty()) {
             // Crea y muestra la ventana del nivel 1
-            if (!level1) {
-                level1 = new Level1();
+            if (!level3) {
+                level3 = new Level3();
             }
 
             // Asigna el nickname al jugador
-            if (level1->getJugador()) {
-                Jugador* jugador = level1->getJugador();
+            if (level3->getJugador()) {
+                Jugador* jugador = level3->getJugador();
                 jugador->setNickname(nickname);
 
                 // Verifica si el nickname ya existe en el archivo
@@ -200,7 +209,7 @@ void MenuInicio::onBotonInicioClicked() {
                 }
             }
 
-            level1->show();
+            level3->show();
             this->hide();  // Oculta la ventana del menú
         } else {
             // Opcionalmente, muestra un mensaje si el nickname está vacío
@@ -208,7 +217,6 @@ void MenuInicio::onBotonInicioClicked() {
         }
     }
 }
-
 
 
 void MenuInicio::onBotonScoreClicked()
