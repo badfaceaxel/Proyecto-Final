@@ -3,6 +3,7 @@
 #include "level1.h"
 #include "jugador.h"
 #include "nicknamedialog.h"
+#include "puntuacionesdialog.h"
 
 MenuInicio::MenuInicio(QWidget *parent)   ////
     : QMainWindow(parent)
@@ -158,8 +159,7 @@ void MenuInicio::adjustButtons()
     botonSalir->setGeometry(sceneWidth / 2 - 270 * widthRatio, sceneHeight - 100 * heightRatio, buttonWidth, buttonHeight);
 }
 
-void MenuInicio::onBotonInicioClicked()
-{
+void MenuInicio::onBotonInicioClicked() {
     clickSound->play();
     qDebug() << "Botón Inicio presionado";
 
@@ -190,7 +190,10 @@ void MenuInicio::onBotonInicioClicked()
                     }
                 }
 
-                if (!nicknameExistente) {
+                if (nicknameExistente) {
+                    // El nickname ya existe, actualizar la puntuación
+                    jugador->setPuntuacion(0); // Puedes asignar una puntuación inicial diferente
+                } else {
                     // El nickname no existe en el archivo, guardar los datos
                     jugador->setPuntuacion(0); // Establece la puntuación inicial en 0
                     jugador->guardarDatos();
@@ -208,12 +211,14 @@ void MenuInicio::onBotonInicioClicked()
 
 
 
-
 void MenuInicio::onBotonScoreClicked()
 {
     // mostrar el puntaje
     clickSound->play();
     qDebug() << "Botón Score presionado";
+
+    PuntuacionesDialog dialogoPuntuaciones(this);
+    dialogoPuntuaciones.exec();
 }
 
 void MenuInicio::onBotonSalirClicked()
