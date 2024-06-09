@@ -23,6 +23,7 @@ class Level2;  // Esto le dice al compilador que Level1 es una clase, sin dar de
 class Level3;  // Esto le dice al compilador que Level1 es una clase, sin dar detalles
 class Jugador;
 class nicknamedialog;
+class nivelselecciondialog;
 
 
 QT_BEGIN_NAMESPACE
@@ -48,6 +49,7 @@ private slots:
     void onBotonInicioClicked();
     void onBotonScoreClicked();
     void onBotonSalirClicked();
+
 
 public slots:
 

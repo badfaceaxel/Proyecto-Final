@@ -178,17 +178,36 @@ void MenuInicio::onBotonInicioClicked() {
     if (result == QDialog::Accepted) {
         QString nickname = dialog.getNickname();
         if (!nickname.isEmpty()) {
-            // Crea y muestra la ventana del nivel 1
-            if (!level3) {
-                level3 = new Level3();
-            }
+            // Crea y muestra el diálogo de selección de nivel
+            NivelSeleccionDialog nivelDialog(this);
+            QObject::connect(&nivelDialog, &NivelSeleccionDialog::nivelSeleccionado, [=, this](int nivel) {
+                if (level1 == nullptr) {
+                    level1 = new Level1();
+                }
+                if (level2 == nullptr) {
+                    level2 = new Level2();
+                }
+                if (level3 == nullptr) {
+                    level3 = new Level3();
+                }
 
-            // Asigna el nickname al jugador
-            if (level3->getJugador()) {
-                Jugador* jugador = level3->getJugador();
+                Jugador* jugador;
+                switch (nivel) {
+                case 1:
+                    jugador = level1->getJugador();
+                    break;
+                case 2:
+                    jugador = level2->getJugador();
+                    break;
+                case 3:
+                    jugador = level3->getJugador();
+                    break;
+                default:
+                    qWarning("Nivel no válido");
+                    return;
+                }
+
                 jugador->setNickname(nickname);
-
-                // Verifica si el nickname ya existe en el archivo
                 jugador->cargarDatos();
 
                 bool nicknameExistente = false;
@@ -207,17 +226,28 @@ void MenuInicio::onBotonInicioClicked() {
                     jugador->setPuntuacion(0); // Establece la puntuación inicial en 0
                     jugador->guardarDatos();
                 }
-            }
 
-            level3->show();
-            this->hide();  // Oculta la ventana del menú
+                switch (nivel) {
+                case 1:
+                    level1->show();
+                    break;
+                case 2:
+                    level2->show();
+                    break;
+                case 3:
+                    level3->show();
+                    break;
+                }
+
+                this->hide(); // Oculta la ventana del menú
+            });
+            nivelDialog.exec();
         } else {
             // Opcionalmente, muestra un mensaje si el nickname está vacío
             QMessageBox::warning(this, "Error", "Por favor, ingresa un nickname.");
         }
     }
 }
-
 
 void MenuInicio::onBotonScoreClicked()
 {
@@ -276,5 +306,4 @@ void MenuInicio::adjustSign()
     // Colocar la firma en la esquina inferior derecha
     signItem->setPos(30, 5); // Ajustar el offset (10) según sea necesario
 }
-
 
