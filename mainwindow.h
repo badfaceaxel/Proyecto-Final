@@ -5,6 +5,7 @@
 #include <QTimer>
 #include "Particula.h"
 #include "Enemigo1.h"
+#include "Enemigo2.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -14,7 +15,7 @@ class MainWindow : public QMainWindow {
     Q_OBJECT
 
 public:
-    MainWindow(int salto, QWidget *parent = nullptr);
+    MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
     bool clic;
 
@@ -25,8 +26,9 @@ private:
     Ui::MainWindow *ui;
     QTimer *timer;
     QList<Enemigo1*> enemies;
+    QVector<Enemigo2*> enemies2;
     void crearEnemigos(QGraphicsView* view, Jugador* jugador, QGraphicsScene* scene);
-
+    void crearEnemigos2(QGraphicsView* view, Jugador* jugador, QGraphicsScene* scene);
 
     //FONDO
     QGraphicsScene *scene;

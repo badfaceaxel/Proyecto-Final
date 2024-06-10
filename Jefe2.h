@@ -28,7 +28,6 @@ public:
     QPointF obtenerPosicion() const;
     void setJugador(Jugador* jugador);
 
-
 private:
     QPixmap spriteSheetFlecha;
     QPixmap spriteSheetGolpe;

@@ -33,6 +33,7 @@ Enemigo1::Enemigo1(QGraphicsView* view, QGraphicsItem* im)
     connect(timerColisionJugador, &QTimer::timeout, this, &Enemigo1::verificarColisionJugador);
     timerColisionJugador->start(50); // Ajusta el intervalo según sea necesario
 
+
     //moveBy(600, 35);
 }
 
@@ -85,6 +86,7 @@ void Enemigo1::setGolpeandoSprite() {
     int spriteY = 96; // Usar el sprite de golpe
 
     // Actualizar el sprite del enemigo
+    qDebug()<< contGolpeEnemigo;
     QPixmap spriteEnem1 = spriteSheet.copy(contGolpeEnemigo * spriteAncho, spriteY, spriteAncho, spriteAlto);
     setPixmap(spriteEnem1);
 

@@ -6,6 +6,7 @@
 Enemigo2::Enemigo2(QGraphicsView* view, QGraphicsItem* im)
     : Jugador(view, im), dardoLanzado(false), contadorAnimacion(0)
 {
+
     // Inicialización del enemigo
     setFlag(QGraphicsItem::ItemIsFocusable, false);
 
@@ -14,7 +15,7 @@ Enemigo2::Enemigo2(QGraphicsView* view, QGraphicsItem* im)
     QPixmap spriteEnem2 = spriteSheet.copy(96, 0, 96, 96); // Sprite inicial del enemigo
     setPixmap(spriteEnem2);
 
-    moveBy(500, 300);
+    //moveBy(500, 300);
 
     // Inicializar el temporizador para verificar la distancia con el jugador
     timerVerificarDistancia = new QTimer(this);
@@ -23,7 +24,8 @@ Enemigo2::Enemigo2(QGraphicsView* view, QGraphicsItem* im)
     //Timer golpe lanzamiento
     timerAnimacion = new QTimer(this);
     connect(timerAnimacion, &QTimer::timeout, this, &Enemigo2::actualizarAnimacionLanzar);
-
+    timerDardo = new QTimer(this);
+    connect(timerDardo, &QTimer::timeout, this, &Enemigo2::moverDardo);
 }
 
 void Enemigo2::setJugador(Jugador* jugador) {
@@ -39,12 +41,12 @@ void Enemigo2::actualizarPosicion() {
         qreal distanciaX = qAbs(posicionJugador.x() - posicionEnemigo.x());
         qreal distanciaY = qAbs(posicionJugador.y() - posicionEnemigo.y());
         //qDebug() << posicionJugador.y() << posicionEnemigo.y();
-        //qDebug() << distanciaX << distanciaY;
+        //qDebug() << posicionEnemigo.y() << distanciaY;
         // Determinar la dirección del dardo
         dardoHaciaLaDerecha = posicionJugador.x() > posicionEnemigo.x();
 
         // Si la distancia en x es menor o igual a 200 y la distancia en y es menor o igual a 20, lanza el dardo
-        if (distanciaX <= 200 && (distanciaY >= 25 && distanciaY <= 33) && !dardoLanzado) {
+        if (distanciaX <= 200 && (distanciaY >=10 && distanciaY < 60) && !dardoLanzado) {
             lanzarDardo(posicionJugador);
         }
     }
@@ -53,6 +55,16 @@ void Enemigo2::actualizarPosicion() {
 void Enemigo2::lanzarDardo(const QPointF& posicionJugador)
 {
     dardoLanzado = true;
+
+    // Eliminar el dardo existente si hay uno
+    if (dardo != nullptr) {
+        scene()->removeItem(dardo);
+        delete dardo;
+        dardo = nullptr;
+        timerDardo->stop();
+        delete timerDardo;
+        timerDardo = nullptr;
+    }
 
     // Reproducir la animación de lanzar el dardo
     contadorAnimacion = 0;
@@ -86,9 +98,11 @@ void Enemigo2::actualizarAnimacionLanzar() {
     setAnimacionLanzamientoSprite();
 }
 
-void Enemigo2::lanzarDardoReal(const QPointF& posicionJugador)
+void Enemigo2::lanzarDardoReal(const QPointF& posicionJugadorParam)
 {
-    dardoHaciaLaDerecha = posicionJugador.x() < obtenerPosicion().x();
+    dardoHaciaLaDerecha = posicionJugadorParam.x() > obtenerPosicion().x();
+    posicionJugador = posicionJugadorParam;
+    posicionInicial = obtenerPosicion() + QPointF(pixmap().width() / 2, pixmap().height() / 2);
 
     // Crea un nuevo QGraphicsPolygonItem para el dardo (triángulo)
     QPolygonF polygonDardo;
@@ -113,33 +127,65 @@ void Enemigo2::lanzarDardoReal(const QPointF& posicionJugador)
     scene()->addItem(dardo);
 
     // Establece la posición inicial del dardo
-    QPointF posicionInicial = obtenerPosicion() + QPointF(pixmap().width() / 2, pixmap().height() / 2);
     dardo->setPos(posicionInicial);
 
-    // Crea un temporizador para mover el dardo
-    QTimer* timerDardo = new QTimer(this);
-    connect(timerDardo, &QTimer::timeout, [=]() {
+    // Crea un nuevo temporizador para mover el dardo
+    if (!timerDardo) {
+        timerDardo = new QTimer(this);
+        connect(timerDardo, &QTimer::timeout, this, &Enemigo2::moverDardo);
+    }
+    timerDardo->start(130);
+}
+
+
+void Enemigo2::moverDardo()
+{
+    if (dardo != nullptr) {
         // Mueve el dardo en la dirección calculada con una velocidad constante
         qreal dx = (dardoHaciaLaDerecha ? 10 : -10);
         dardo->moveBy(dx, 0); // Movimiento horizontal solamente
 
-        // Verifica si el dardo ha recorrido 200 unidades de distancia o ha colisionado con el Jugador
-        if (qAbs(dardo->pos().x() - posicionInicial.x()) >= 200 || dardo->collidesWithItem(jugadorObj)) {
+        // Verifica si el dardo ha recorrido 200 unidades de distancia
+        if (qAbs(dardo->pos().x() - posicionInicial.x()) >= 200) {
+            eliminarDardo();
+        } else if (dardo->collidesWithItem(jugadorObj)) {
+            // El dardo colisiona con el Jugador
             if (!vidaReducida) {
                 jugadorObj->disminuirVida(2); // Restar 2 de vida al Jugador
                 vidaReducida = true; // Establecer la bandera a true después de reducir la vida
             }
-            scene()->removeItem(dardo);
-            delete dardo;
-            dardo = nullptr;
-
-            dardoLanzado = false;
-            timerDardo->stop();
-            delete timerDardo;
-            vidaReducida = false; // Restablecer la bandera para el próximo encuentro
+            eliminarDardo();
         }
-    });
-        timerDardo->start(50);
+    }
+}
+
+void Enemigo2::eliminarDardo()
+{
+    //qDebug() << "Entrando a eliminarDardo()";
+
+    // Detener y eliminar el temporizador timerDardo
+    if (timerDardo != nullptr) {
+        timerDardo->stop();
+        delete timerDardo;
+        timerDardo = nullptr;
+    }
+
+    // Restablecer la bandera vidaReducida
+    vidaReducida = false;
+
+    // Eliminar el dardo si aún existe
+    if (dardo != nullptr) {
+        //qDebug() << "Dardo no es nulo, preparando para eliminarlo";
+        scene()->removeItem(dardo);
+        delete dardo;
+        dardo = nullptr;
+        //qDebug() << "Dardo eliminado";
+    } else {
+        //qDebug() << "Dardo es nulo, no se eliminará";
+    }
+
+    dardoLanzado = false;
+    //qDebug() << "Saliendo de eliminarDardo()";
 }
 
 QPointF Enemigo2::obtenerPosicion() const {
@@ -160,3 +206,4 @@ bool Enemigo2::eventFilter(QObject *obj, QEvent *event) {
 void Enemigo2::actualizarCaida() {
     //qDebug() << "3.0 Hola";
 }
+

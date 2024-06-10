@@ -52,7 +52,7 @@ private slots:
 
 
 public:
-    Jugador(QGraphicsView *view,QGraphicsItem* im = 0); //se inicializa con nullptr en el constructor. Valor predeterminado que se asigna al parámetro en caso de que no se proporcione ningún valor al crear un objeto de la clase.
+   Jugador(QGraphicsView *view, QGraphicsItem *im = 0); //se inicializa con nullptr en el constructor. Valor predeterminado que se asigna al parámetro en caso de que no se proporcione ningún valor al crear un objeto de la clase.
     void keyPressEvent(QKeyEvent *event) override;
     // Movimiento
     void moveBy(int dx, int dy);

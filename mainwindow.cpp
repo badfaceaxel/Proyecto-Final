@@ -10,11 +10,9 @@
 #include <QLabel>
 #include <QPixmap>
 
-MainWindow::MainWindow(int salto, QWidget *parent)
-    : QMainWindow(parent), ui(new Ui::MainWindow), m_salto(salto) //La interfaz diseñada en Qt Designer
+MainWindow::MainWindow(QWidget *parent)
+    : QMainWindow(parent), ui(new Ui::MainWindow) //La interfaz diseñada en Qt Designer
 {
-
-    qDebug() << m_salto;
 
     ui->setupUi(this); //This hace referencia a la clase MainWindow, configura la interfaz de usuario definida en el Qt designer
 
@@ -49,17 +47,29 @@ MainWindow::MainWindow(int salto, QWidget *parent)
 
 
     //------------------------------
-    Enemigo2* enemigo2 = new Enemigo2(ui->graphicsView);
-    scene->addItem(enemigo2);
-    enemigo2->setPos(600, 135);
-    enemigo2->setJugador(jug1);
+    crearEnemigos2(ui->graphicsView, jug1, scene);
 
     // Conectar la señal de eliminarEnemigo
-    /*connect(enemigo2, &Enemigo2::eliminarEnemigo, [this, enemigo2, scene]() {
-        enemigo2->setVisible(false);
-        scene->removeItem(enemigo2);
-        delete enemigo2;
-    });*/
+    for (Enemigo2* enemigo2 : enemies2) {
+        connect(enemigo2, &Enemigo2::eliminarEnemigo, [this, enemigo2, scene]() {
+            //qDebug() << "Entrando al slot eliminarEnemigo de Enemigo2";
+            enemigo2->setVisible(false);
+            //qDebug() << "Llamando a eliminarDardo()";
+            enemigo2->eliminarDardo(); // Llamar a eliminarDardo() antes de eliminar al enemigo2
+            //qDebug() << "Dardo eliminado (si existía)";
+            scene->removeItem(enemigo2);
+
+            // Desconectar la conexión adicional a la señal eliminarEnemigo
+            disconnect(enemigo2, &Enemigo2::eliminarEnemigo, nullptr, nullptr);
+
+            // Desconectar la señal eliminarEnemigo
+            disconnect(enemigo2, &Enemigo2::eliminarEnemigo, this, nullptr);
+
+            delete enemigo2;
+            enemies2.removeOne(enemigo2);
+            //qDebug() << "Enemigo2 eliminado";
+        });
+    }
 
     //------------------------------
     //JEFES
@@ -110,7 +120,7 @@ MainWindow::MainWindow(int salto, QWidget *parent)
 void MainWindow::crearEnemigos(QGraphicsView* view, Jugador* jugador, QGraphicsScene* scene) {
     QVector<QPointF> posicionesIniciales = {
         QPointF(600, 235),
-        QPointF(m_salto, 130),
+        QPointF(200, 130),
         QPointF(600, -10)
     };
 
@@ -129,9 +139,54 @@ void MainWindow::crearEnemigos(QGraphicsView* view, Jugador* jugador, QGraphicsS
     }
 }
 
+void MainWindow::crearEnemigos2(QGraphicsView* view, Jugador* jugador, QGraphicsScene* scene) {
+    QVector<QPointF> posicionesIniciales = {
+        QPointF(600, 135),
+        QPointF(240, 130),
+        QPointF(620, -10)
+    };
+
+    for (const QPointF& posicion : posicionesIniciales) {
+        Enemigo2* enemigo2 = new Enemigo2(view);
+        scene->addItem(enemigo2);
+        enemigo2->setPos(posicion);
+        enemigo2->setJugador(jugador);
+
+        // Conectar la señal de eliminarEnemigo
+        connect(enemigo2, &Enemigo2::eliminarEnemigo, [this, enemigo2, scene]() {
+            //qDebug() << "Entrando al slot eliminarEnemigo de Enemigo2";
+            enemigo2->setVisible(false);
+            //qDebug() << "Llamando a eliminarDardo()";
+            enemigo2->eliminarDardo(); // Llamar a eliminarDardo() antes de eliminar al enemigo2
+            //qDebug() << "Dardo eliminado (si existía)";
+            scene->removeItem(enemigo2);
+
+            // Detener y eliminar el temporizador timerDardo
+            if (enemigo2->timerDardo != nullptr) {
+                enemigo2->timerDardo->stop();
+                delete enemigo2->timerDardo;
+                enemigo2->timerDardo = nullptr;
+            }
+
+            // Eliminar el dardo si aún existe
+            if (enemigo2->dardo != nullptr) {
+                scene->removeItem(enemigo2->dardo);
+                delete enemigo2->dardo;
+                enemigo2->dardo = nullptr;
+            }
+
+            // Desconectar la señal eliminarEnemigo
+            disconnect(enemigo2, &Enemigo2::eliminarEnemigo, nullptr, nullptr);
+
+            delete enemigo2;
+            //qDebug() << "Enemigo2 eliminado";
+        });
+
+        enemies2.append(enemigo2);
+    }
+}
+
 MainWindow::~MainWindow()
 {
-    qDeleteAll(this->enemies);
-    this->enemies.clear();
     delete ui;
 }

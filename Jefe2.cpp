@@ -44,7 +44,7 @@ void Jefe2::actualizarPosicion()
 
         if (puedeDisparar) {
             if (distanciaX <= 300 && (distanciaY >= 0 && distanciaY <= 20) && !flechaLanzada) {
-                qDebug() << "entro";
+                //qDebug() << "entro";
                 lanzarFlecha(posicionJugador);
             }
         }

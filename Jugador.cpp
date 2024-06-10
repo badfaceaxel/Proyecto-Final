@@ -10,8 +10,9 @@
 
 
 //Definir el jugador y la imgen
-Jugador::Jugador(QGraphicsView *view,QGraphicsItem *im):QGraphicsPixmapItem(im)
+Jugador::Jugador(QGraphicsView *view, QGraphicsItem *im):QGraphicsPixmapItem(im)
 {
+
     setFlag(QGraphicsItem::ItemIsFocusable); // Mantener foco para eventos del teclado
     setFocus();
 
@@ -330,10 +331,29 @@ void Jugador::actualizarGolpe() {
             // Verificar si el elemento es un Enemigo2
             Enemigo2* enemigo2 = dynamic_cast<Enemigo2*>(item);
             if (enemigo2 != nullptr && !enemigo2->yaEliminado) {
+                //qDebug() << "Colisión con Enemigo2 detectada";
                 enemigo2->setVisible(false); // Hacer al enemigo invisible antes de emitir la señal
                 enemigo2->spriteSheet = QPixmap();
                 enemigo2->yaEliminado = true;
                 emit enemigo2->eliminarEnemigo();
+
+                // Crear copias locales de los miembros relevantes
+                bool dardoExistente = (enemigo2->dardo != nullptr);
+                QGraphicsScene* escena = scene();
+
+                // Verificar si enemigo2 y el dardo existen antes de intentar eliminar el dardo
+                if (dardoExistente) {
+                    //qDebug() << "Eliminando dardo de Enemigo2";
+                    escena->removeItem(enemigo2->dardo);
+                    delete enemigo2->dardo;
+                    enemigo2->dardo = nullptr;
+                    //qDebug() << "Dardo eliminado";
+                } else {
+                    //qDebug() << "Dardo de Enemigo2 es nulo, no se eliminará";
+                }
+
+                // Salir del ciclo después de eliminar al Enemigo2
+                break;
             }
         }
     }
@@ -363,7 +383,7 @@ void Jugador::disminuirVida(int cantidad) {
     qDebug() << vida;
     if (vida <= 0) {
         // Aquí puedes agregar código para manejar cuando el jugador se queda sin vida
-        qDebug() << "El jugador ha perdido toda su vida";
+        //qDebug() << "El jugador ha perdido toda su vida";
     }
 }
 
