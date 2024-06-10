@@ -7,6 +7,7 @@
 #include "nicknamedialog.h"
 #include "puntuacionesdialog.h"
 #include "nivelselecciondialog.h"
+QSoundEffect *MenuInicio::music = nullptr; // Inicializa la variable estática a nullptr
 
 MenuInicio::MenuInicio(QWidget *parent)   ////
     : QMainWindow(parent)
@@ -16,8 +17,10 @@ MenuInicio::MenuInicio(QWidget *parent)   ////
     , level3(nullptr)  // Inicializa level2 a nullptr
 
 
+
 {
     ui->setupUi(this);
+
 
     // Crear la escena y establecerla en QGraphicsView
     scene = new QGraphicsScene(this);
@@ -92,11 +95,13 @@ MenuInicio::MenuInicio(QWidget *parent)   ////
 
 
     // Cargar sonidos
-    music = new QSoundEffect(this);
-    music->setSource(QUrl::fromLocalFile("C:/Users/johna/Desktop/Pruebas2/Musica1.wav"));
-    music->setVolume(0.25f);
-    music->setLoopCount(QSoundEffect::Infinite);
-    music->play();
+    if (!music) {
+        music = new QSoundEffect(this);
+        music->setSource(QUrl::fromLocalFile("C:/Users/johna/Desktop/Pruebas2/Musica1.wav"));
+        music->setVolume(0.25f);
+        music->setLoopCount(QSoundEffect::Infinite);
+        music->play();
+    }
 
 
 
@@ -119,6 +124,7 @@ MenuInicio::~MenuInicio()
     delete hoverSound;
     delete clickSound;
     delete music;
+    music = nullptr;
     delete level1;
     delete level2;
     delete level3;
@@ -239,7 +245,7 @@ void MenuInicio::onBotonInicioClicked() {
                     break;
                 }
 
-                this->hide(); // Oculta la ventana del menú
+                this->close(); // Oculta la ventana del menú
             });
             nivelDialog.exec();
         } else {

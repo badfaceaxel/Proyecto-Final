@@ -73,7 +73,7 @@ private:
 
     QSoundEffect* hoverSound;
     QSoundEffect* clickSound;
-    QSoundEffect* music;
+    static QSoundEffect *music; // Declara la variable estática para la música
 
     Level1 *level1;
     Level2 *level2;

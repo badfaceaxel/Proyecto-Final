@@ -10,6 +10,7 @@
 #include "Enemigo1.h"
 #include "Particula.h"
 #include "jugador.h"
+#include <QMenuBar>
 
 // Agrega esta línea para la declaración anticipada
 class MenuInicio; // Esto le dice al compilador que MenuInicio es una clase       //CambioAxel
@@ -26,6 +27,8 @@ public:
     explicit Level2(QWidget *parent = nullptr);
     bool clic;
     Jugador *getJugador() { return player; } // Agrega esta función /////////CambioAxel
+    void volverMenuPrincipal();
+
     ~Level2();
 
 protected:
@@ -41,12 +44,15 @@ private:
     //FONDO
     QGraphicsScene *scene;
     QGraphicsPixmapItem *background;
+    QGraphicsPixmapItem *piedra;
+
     int anchoFondo;
     int anchoCuadrante;
 
     void desplazarFondo(int desplazamiento);
     void adjustBackground(); //CambioAxel
     MenuInicio *menuInicio; //CambioAxel  - esto no lo ponga en su codigo de pruebas pero si en el GIT
+    QMenuBar *menuBar;
 
     int anchoTotalMundo;      //CambioEscena
     int anchoVentana;         //CambioEscena
