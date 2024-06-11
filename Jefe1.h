@@ -17,10 +17,6 @@ public:
     void actualizarSpriteGolpeJefe();
     void setJugador(Jugador* jugador);
 
-protected:
-           // Sobrescribe el método setSprite
-
-
 private:
 
     bool direccion = true;
@@ -29,7 +25,6 @@ private:
     bool vidaReducida = false;
     bool movimientoHaciaAdelante = true;
     bool golpeando = false;
-    bool jugadorReconocido = false;
 
     QTimer* timerMovimiento;
     QTimer* spriteTimer;

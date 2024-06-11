@@ -26,13 +26,13 @@ public:
 
 
 private slots:
-    void moverEnLineaRectaEnem();
-    void actualizarSpriteEnem();
-    void actualizarSpriteGolpeEnem(); // actualizar el sprite de golpe
+    void moverEnLineaRecta();
+    void actualizarSprite();
+    void actualizarSpriteGolpe(); // actualizar el sprite de golpe
 
-    void setSpriteEnem(bool direccion);
-    void setGolpeandoSpriteEnem();
-    void verificarColisionJugadorEnem();
+    void setSprite(bool direccion);
+    void setGolpeandoSprite();
+    void verificarColisionJugador();
 
 private:
 

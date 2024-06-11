@@ -5,9 +5,12 @@
 #include <QGraphicsItem>
 #include <QGraphicsView>
 #include <QTimer>
+#include <QFile>      //txt
+#include <QTextStream>
 
-class Jugador:public QObject,
-                public QGraphicsPixmapItem //hereda de QObject (para características de objetos de Qt) y de QGraphicsPixmapItem (para objetos gráficos en una escena gráfica de Qt).
+class Level1;
+
+class Jugador:public QObject, public QGraphicsPixmapItem //hereda de QObject (para características de objetos de Qt) y de QGraphicsPixmapItem (para objetos gráficos en una escena gráfica de Qt).
 {
     Q_OBJECT
 private:
@@ -42,17 +45,29 @@ private:
     int contGolpe = 0;
     QTimer* timerGolpe = nullptr; // Temporizador para la animación del golpe
 
-    //Vida
+    //VIDAAAAAAAAAA
     int vida = 100;
 
     //instancias
     bool posicionInicialEstablecida = true;
+
+    //Cambios Axel
+
+    int limiteIzquierdo = 0;   //CambioEscena
+    int limiteDerecho = 3200;  // Valor inicial que se actualizará
+    QString nickname;  // NickName         //CambioAxel
+
+    int puntuacion = 0; //
+    QVector<QPair<QString, int>> registros; // Nuevo atributo para almacenar los registros
+
+
+
 private slots:
 
 
 
 public:
-   Jugador(QGraphicsView *view, QGraphicsItem *im = 0); //se inicializa con nullptr en el constructor. Valor predeterminado que se asigna al parámetro en caso de que no se proporcione ningún valor al crear un objeto de la clase.
+    Jugador(QGraphicsView *view, QGraphicsItem *im = 0); //se inicializa con nullptr en el constructor. Valor predeterminado que se asigna al parámetro en caso de que no se proporcione ningún valor al crear un objeto de la clase.
     void keyPressEvent(QKeyEvent *event) override;
     // Movimiento
     void moveBy(int dx, int dy);
@@ -60,6 +75,7 @@ public:
     void setSprite(bool movimientoHaciaAdelante);
 
     void verificarColisiones();
+    void movimientoHorizontal(int desplazamiento);
 
     //salto
     void actualizarSalto();
@@ -84,14 +100,36 @@ public:
     double velocidadVertical = 0.0;
     double aceleracionGravedad = 0.3;
 
+    //CambiosAxel
+
+    void setNickname(const QString& name) { nickname = name; }   //CambioAxel
+    QString getNickname() const { return nickname; }             //CambioAxel
+    void setLimites(int izquierdo, int derecho);   //CambioEscena
+    qreal getX() const { return x; }
+    qreal getY() const { return y; }
+
+    void guardarDatos();
+    void cargarDatos();
+    int getPuntuacion() const { return puntuacion; }
+    void setPuntuacion(int nuevaPuntuacion) { puntuacion = nuevaPuntuacion; }
+    const QVector<QPair<QString, int>>& getRegistros() const { return registros; }
+    int getVida() const { return vida; }
+
+    void aumentarPuntuacion(int puntos); //Puntuacion
+
 protected:
     QPixmap sprite;
     QPixmap spriteSheet;
 
 signals:
-    void movimientoHorizontal(int desplazamiento);
 
+    //CAMBIOSaXEL
 
+    void posicionCambiada();
+    void vidaCambiada(int nuevaVida);
+    void puntuacionCambiada(int nuevaPuntuacion);   //Puntuacion
+
+    void vidaCero();
 
 };
 

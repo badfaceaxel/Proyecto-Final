@@ -7,23 +7,23 @@
 #include <QDebug>
 #include "Enemigo1.h"
 #include "Enemigo2.h"
+#include "level1.h"
 
 
 //Definir el jugador y la imgen
-Jugador::Jugador(QGraphicsView *view, QGraphicsItem *im):QGraphicsPixmapItem(im)
+Jugador::Jugador(QGraphicsView *view,QGraphicsItem *im):QGraphicsPixmapItem(im)
 {
-
     setFlag(QGraphicsItem::ItemIsFocusable); // Mantener foco para eventos del teclado
     setFocus();
 
-    x=200;
+    x=810;
     y = 200;
     setFlag(QGraphicsItem::ItemIsFocusable); //Inicialización opcional para decir que tiene el foco para eventos del teclado
 
     viewRect = view->size();
     QRectF sceneRect = view->sceneRect();
     //qDebug() << viewRect << " "<< sceneRect << " "<<view->size().width();
-    spriteSheet.load(":/Imagenes/SpriteADE.png");
+    spriteSheet.load(":/Media/SpriteADE.png");
 
     QPixmap sprite = spriteSheet.copy(spriteX, spriteY, 128, spriteHeight);
     setPixmap(sprite);
@@ -160,23 +160,19 @@ void Jugador::keyPressEvent(QKeyEvent *event)
 }
 
 void Jugador::moveBy(int dx, int dy) {
-    // Calcular nueva posición potencial
     qreal newX = x + dx;
     qreal newY = y + dy;
 
-    // Verificar límites de posición
-    if (newX < 0) {
-        newX = 0;
-    } else if (newX > 800) {
-        newX = 0;
+    if (newX < limiteIzquierdo) {
+        newX = limiteIzquierdo;
+    } else if (newX > limiteDerecho) {
+        newX = limiteDerecho;
     }
 
-    // Actualizar posición
     x = newX;
     y = newY;
-
-    // Establecer nueva posición
     setPos(x, y);
+    emit posicionCambiada();  // Emite la señal cada vez que el jugador se mueve
 }
 
 void Jugador::setSprite(bool movimientoHaciaAdelante)
@@ -286,8 +282,8 @@ void Jugador::actualizarSalto()
     if(y >= alturaSaltoInicial){
         enElAire = false;
     }
-   //qDebug() << y;
-        // Verificar si el jugador ha alcanzado la posición inicial del salto
+    //qDebug() << y;
+    // Verificar si el jugador ha alcanzado la posición inicial del salto
     if (!enElAire && y >= alturaSaltoInicial && !Colision) {
         //qDebug() << "ENTROOOOOOOOO2";
         y = alturaSaltoInicial; // Restaurar la posición inicial
@@ -326,6 +322,7 @@ void Jugador::actualizarGolpe() {
                 enemigo1->setVisible(false); // Hacer al enemigo invisible antes de emitir la señal
                 enemigo1->spriteSheet = QPixmap();
                 emit enemigo1->eliminarEnemigo();
+                aumentarPuntuacion(200); // Aumentar la puntuación por eliminar un Enemigo1
             }
 
             // Verificar si el elemento es un Enemigo2
@@ -336,6 +333,7 @@ void Jugador::actualizarGolpe() {
                 enemigo2->spriteSheet = QPixmap();
                 enemigo2->yaEliminado = true;
                 emit enemigo2->eliminarEnemigo();
+                aumentarPuntuacion(200); // Aumentar la puntuación por eliminar un Enemigo1
 
                 // Crear copias locales de los miembros relevantes
                 bool dardoExistente = (enemigo2->dardo != nullptr);
@@ -378,12 +376,14 @@ QPointF Jugador::obtenerPosicion() const
     return QPointF(x, y);
 }
 
+
 void Jugador::disminuirVida(int cantidad) {
     vida -= cantidad;
-    qDebug() << vida;
+    qDebug() << "Vida cambiada a" << vida;  // Verifica si se imprime este mensaje
+    emit vidaCambiada(vida); // Emite la señal con la nueva vida
     if (vida <= 0) {
-        // Aquí puedes agregar código para manejar cuando el jugador se queda sin vida
-        //qDebug() << "El jugador ha perdido toda su vida";
+        emit vidaCero();
+        qDebug() << "El jugador ha perdido toda su vida";
     }
 }
 
@@ -414,4 +414,58 @@ void Jugador::actualizarCaida()
     }
 
     setPos(x, y);
+}
+
+
+
+void Jugador::setLimites(int izquierdo, int derecho) {
+    limiteIzquierdo = izquierdo;
+    limiteDerecho = derecho;
+}
+
+void Jugador::guardarDatos() {
+    QFile archivo("datos.csv");
+    if (archivo.open(QIODevice::ReadWrite | QIODevice::Text)) {
+        QStringList lineas;
+        QTextStream in(&archivo);
+        while (!in.atEnd()) {
+            QString linea = in.readLine();
+            QStringList campos = linea.split(",");
+            if (campos.size() == 2 && campos[0] != nickname) {
+                lineas.append(linea);
+            }
+        }
+        archivo.resize(0); // Borrar el contenido del archivo
+
+        QTextStream out(&archivo);
+        for (const QString& linea : lineas) {
+            out << linea << "\n";
+        }
+        out << nickname << "," << puntuacion;
+
+        archivo.close();
+    }
+}
+
+void Jugador::cargarDatos() {
+    QFile archivo("datos.csv");
+    if (archivo.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        QTextStream in(&archivo);
+        while (!in.atEnd()) {
+            QString linea = in.readLine();
+            QStringList campos = linea.split(",");
+            if (campos.size() == 2) {
+                QString cargaNickname = campos[0];
+                int cargaPuntuacion = campos[1].toInt();
+                // Aquí puedes realizar operaciones adicionales con los datos cargados
+                // o almacenarlos en una estructura de datos adecuada
+            }
+        }
+        archivo.close();
+    }
+}
+
+void Jugador::aumentarPuntuacion(int puntos) {
+    puntuacion += puntos;
+    emit puntuacionCambiada(puntuacion);
 }

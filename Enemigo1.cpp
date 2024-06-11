@@ -10,27 +10,27 @@ Enemigo1::Enemigo1(QGraphicsView* view, QGraphicsItem* im)
     spriteSheet.load(":/Media/SpriteEnemigoADE.png");
     QPixmap spriteEnem1 = spriteSheet.copy(0, 96, 96, 96);
     setPixmap(spriteEnem1);
-    setSpriteEnem(direccion);
+    setSprite(direccion);
 
     //qDebug() << posicionX << posicionY;
     //(posicionX, posicionY);
 
     // Inicializar el temporizador para el movimiento
     timerMovimiento = new QTimer(this);
-    connect(timerMovimiento, &QTimer::timeout, this, &Enemigo1::moverEnLineaRectaEnem);
+    connect(timerMovimiento, &QTimer::timeout, this, &Enemigo1::moverEnLineaRecta);
 
     // Inicializar el temporizador para la animación del sprite
     spriteTimer = new QTimer(this);
-    connect(spriteTimer, &QTimer::timeout, this, &Enemigo1::actualizarSpriteEnem);
+    connect(spriteTimer, &QTimer::timeout, this, &Enemigo1::actualizarSprite);
     spriteTimer->start(360); // Ajusta el intervalo del temporizador según sea necesario
 
     // Inicializar el temporizador para la animación del sprite de golpe
     spriteGolpeTimer = new QTimer(this);
-    connect(spriteGolpeTimer, &QTimer::timeout, this, &Enemigo1::actualizarSpriteGolpeEnem);
+    connect(spriteGolpeTimer, &QTimer::timeout, this, &Enemigo1::actualizarSpriteGolpe);
 
     // Inicializar el temporizador para verificar la colisión con el Jugador
     timerColisionJugador = new QTimer(this);
-    connect(timerColisionJugador, &QTimer::timeout, this, &Enemigo1::verificarColisionJugadorEnem);
+    connect(timerColisionJugador, &QTimer::timeout, this, &Enemigo1::verificarColisionJugador);
     timerColisionJugador->start(50); // Ajusta el intervalo según sea necesario
 
 
@@ -43,7 +43,7 @@ void Enemigo1::establecerPosicionInicial(qreal posicionX, qreal posicionY) {
     //qDebug() << "Posición establecida:" << pos();
 }
 
-void Enemigo1::setSpriteEnem(bool direccion) {
+void Enemigo1::setSprite(bool direccion) {
     int spriteAncho = 96;
     int spriteAlto = 96;
     int spriteY = 0; // Usar el sprite de movimiento a la izquierda
@@ -53,7 +53,7 @@ void Enemigo1::setSpriteEnem(bool direccion) {
     setPixmap(spriteEnem1);
 }
 
-void Enemigo1::actualizarSpriteEnem() {
+void Enemigo1::actualizarSprite() {
     // Incrementar el índice del sprite para la animación
 
     contMov++;
@@ -61,10 +61,10 @@ void Enemigo1::actualizarSpriteEnem() {
         contMov = 0;
     }
     jugadorObj->setFocus();
-    setSpriteEnem(direccion);
+    setSprite(direccion);
 }
 
-void Enemigo1::moverEnLineaRectaEnem() {
+void Enemigo1::moverEnLineaRecta() {
     // Mover el enemigo en línea recta hacia la izquierda
     setPos(QGraphicsPixmapItem::x() - 5, QGraphicsPixmapItem::y()); // Mover hacia la izquierda
 
@@ -82,7 +82,7 @@ void Enemigo1::moverEnLineaRectaEnem() {
 
 //GOLPE
 
-void Enemigo1::setGolpeandoSpriteEnem() {
+void Enemigo1::setGolpeandoSprite() {
 
     //qDebug() << "entro";
     int spriteAncho = 96;
@@ -96,7 +96,7 @@ void Enemigo1::setGolpeandoSpriteEnem() {
 
 }
 
-void Enemigo1::actualizarSpriteGolpeEnem() {
+void Enemigo1::actualizarSpriteGolpe() {
     // Incrementar el índice del sprite para la animación de golpe
 
     contGolpeEnemigo++;
@@ -106,18 +106,18 @@ void Enemigo1::actualizarSpriteGolpeEnem() {
         spriteGolpeTimer->stop(); // Detiene el temporizador
         jugadorObj->setFocus();
     }
-    setGolpeandoSpriteEnem();
+    setGolpeandoSprite();
 }
 
 //Reconocimiento
 
-void Enemigo1::verificarColisionJugadorEnem() {
+void Enemigo1::verificarColisionJugador() {
     // Verificar si el Enemigo1 colisiona con el Jugador
     if (collidesWithItem(jugadorObj)) {
         // Activar el sprite de golpe
         golpeando = true;
         spriteGolpeTimer->start(100); // Inicia el temporizador para la animación de golpe
-        setGolpeandoSpriteEnem(); // Actualiza el sprite para la primera imagen de golpe
+        setGolpeandoSprite(); // Actualiza el sprite para la primera imagen de golpe
 
         // Detiene el movimiento temporalmente
         timerMovimiento->stop();

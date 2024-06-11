@@ -12,11 +12,15 @@
 #include "Enemigo1.h"
 #include "Enemigo2.h"
 #include <QMenuBar>
+#include <QGraphicsTextItem>
+#include "perderdialog.h" // Incluir el nuevo diálogo
 
 
 // Agrega esta línea para la declaración anticipada
 class MenuInicio;  // Esto le dice al compilador que MenuInicio es una clase       //CambioAxel
-
+class Level2;
+class NivelCompletadoDialog;
+class PerderDialog;
 
 namespace Ui {
 class Level1;
@@ -32,13 +36,21 @@ public:
     bool clic;
     Jugador* getJugador() { return player; }  // Agrega esta función /////////CambioAxel
     void volverMenuPrincipal();
+    void actualizarPuntuacionTexto(int nuevaPuntuacion);
+    void actualizarPosicionJugador();
+
 
 protected:
     void resizeEvent(QResizeEvent *event) override;    //CambioAxel
     void showEvent(QShowEvent *event) override;        //CambioAxel
 
 private slots:
-    //void actualizarCorazones(int nuevaVida);
+    void actualizarCorazones(int nuevaVida);
+    void moverCorazones();
+    void mostrarVentanaPerdiste(); // Declarar la función
+    void mostrarDialogoNivelCompletado();
+    void continuarNivel2();
+//    void volverMenuPrincipal();
 
 
 private:
@@ -50,8 +62,9 @@ private:
     void crearEnemigos2(QGraphicsView* view, Jugador* jugador, QGraphicsScene* scene);
 
     Jugador *player;   //CambioAxel
-    //QVector<QGraphicsPixmapItem*> corazones;
 
+    QVector<QGraphicsPixmapItem*> corazones;
+    QGraphicsTextItem *puntuacionTexto;
 
     //FONDO
     QGraphicsScene *scene;
@@ -60,9 +73,10 @@ private:
     int anchoFondo;
     int anchoCuadrante;
 
-    void desplazarFondo(int desplazamiento);
+    int desplazamientoHorizontal;
     void adjustBackground();                    //CambioAxel
     MenuInicio *menuInicio;        //CambioAxel  - esto no lo ponga en su codigo de pruebas pero si en el GIT
+    Level2 *level2;
     QMenuBar *menuBar;
 
 
@@ -71,6 +85,11 @@ private:
     void ajustarVistaMundo();    //CambioEscena
     int backgroundWidth;
     int backgroundHeight;
+
+    PerderDialog *perderDialog;
+    NivelCompletadoDialog *dialogoNivelCompletado;
+    QTimer *timerPosicionJugador;
+
 };
 
 #endif // LEVEL1_H

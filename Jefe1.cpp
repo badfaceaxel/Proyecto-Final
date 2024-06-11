@@ -29,12 +29,10 @@ Jefe1::Jefe1(QGraphicsView* view, QGraphicsItem* im)
     timerRetardoGolpe = new QTimer(this);
     connect(timerRetardoGolpe, &QTimer::timeout, this, [=]() {
         golpeando = true;
-        spriteGolpeTimer->start(350); // Inicia el temporizador para la animación de golpe
+        spriteGolpeTimer->start(50); // Inicia el temporizador para la animación de golpe
         setGolpeandoSpriteJefe();
     });
 
-    // Inicializamos la bandera de reconocimiento del jugador
-    jugadorReconocido = false;
 }
 
 void Jefe1::setSprite(bool direccion)
@@ -96,7 +94,6 @@ void Jefe1::actualizarSpriteGolpeJefe()
         timerMovimiento->start(50);
         spriteTimer->start(360);
 
-        jugadorReconocido = false;
 
     }
     setGolpeandoSpriteJefe();
@@ -114,13 +111,12 @@ void Jefe1::setGolpeandoSpriteJefe() {
 
 void Jefe1::verificarColisionJugador(Jugador* jugador)
 {
-    if (collidesWithItem(jugador) && !jugadorReconocido) {
+    if (collidesWithItem(jugadorObj)) {
         timerMovimiento->stop();
         spriteTimer->stop();
         // Marcar que el jugador ha sido reconocido para evitar que se repita el golpe
-        jugadorReconocido = true;
 
-        timerRetardoGolpe->start(500);
+        timerRetardoGolpe->start(60);
 
         if (!vidaReducida) {
             jugador->disminuirVida(8);

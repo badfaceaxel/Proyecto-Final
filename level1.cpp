@@ -7,11 +7,20 @@
 #include "Enemigo2.h"
 #include "Jefe1.h"
 #include "Jefe2.h"
+#include "level2.h"
+#include <nivelcompletadodialog.h>
+
+
 
 Level1::Level1(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::Level1)
     , menuInicio(nullptr)  // Inicializa level2 a nullptr
+    , level2(nullptr)  // Inicializa level2 a nullptr
+    , dialogoNivelCompletado(nullptr)
+    , perderDialog(nullptr)
+    , timerPosicionJugador(new QTimer(this))
+
 {
     ui->setupUi(this);
 
@@ -36,6 +45,7 @@ Level1::Level1(QWidget *parent)
     ui->graphicsView->fitInView(0, 0, 1600, backgroundImage.height(), Qt::KeepAspectRatioByExpanding);
     ui->graphicsView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);    //CambioEscena
     ui->graphicsView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);     //CambioEscena
+
 
     // Crea el menú
     menuBar = new QMenuBar(this);
@@ -63,7 +73,33 @@ Level1::Level1(QWidget *parent)
     connect(player, &Jugador::posicionCambiada, this, &Level1::ajustarVistaMundo);  //CambioEscena
     player->setLimites(800, 4000);        //CambioEscena
 
-    //qDebug() << ui->graphicsView->size()<<" "<<scene->sceneRect();
+    QPixmap corazonPixmap(":/Media/corazon.png");
+    corazonPixmap = corazonPixmap.scaledToWidth(corazonPixmap.width() * 0.15, Qt::SmoothTransformation);
+
+
+    // Crea los corazones y agrega cada uno a la escena
+    for (int i = 0, j = 800; i < 5; ++i) {
+        QGraphicsPixmapItem* corazon = new QGraphicsPixmapItem(corazonPixmap);
+        corazon->setPos(j, 10); // Establece la posición del corazón
+        j = j + 70;
+        scene->addItem(corazon);
+        corazones.append(corazon);
+    }
+
+    qDebug() << "Corazones en el vector:" << corazones.size();
+
+    // Crear el objeto QGraphicsTextItem para la puntuación
+    puntuacionTexto = new QGraphicsTextItem();
+    QFont font("Arial", 20); // Establece la fuente y el tamaño del texto
+    puntuacionTexto->setFont(font);
+    puntuacionTexto->setDefaultTextColor(Qt::red); // Establecer el color del texto a blanco
+    puntuacionTexto->setPos(600, 0); // Establecer la posición del texto
+    scene->addItem(puntuacionTexto);
+    scene->update();
+
+    // Conectar la señal puntuacionCambiada a la función para actualizar el texto
+    connect(player, &Jugador::puntuacionCambiada, this, &Level1::actualizarPuntuacionTexto);
+
 
     // Crear enemigos
     crearEnemigos(ui->graphicsView, player, scene);
@@ -105,7 +141,7 @@ Level1::Level1(QWidget *parent)
     }
 
     //JEFES
-   /*Jefe1* jefe1 = new Jefe1(ui->graphicsView);
+    /*Jefe1* jefe1 = new Jefe1(ui->graphicsView);
     scene->addItem(jefe1);
     jefe1->setPos(1300, 200);
     jefe1->setJugador(player);
@@ -188,8 +224,6 @@ Level1::Level1(QWidget *parent)
     scene->addItem(espacioEnem723);
     espacioEnem723->setPos(3900, 220);
 
-
-
     QGraphicsRectItem* suelo = new QGraphicsRectItem(0, 0, 3100, 20);
     suelo->setBrush(brushPiedra);
     scene->addItem(suelo);
@@ -200,15 +234,28 @@ Level1::Level1(QWidget *parent)
     scene->addItem(suelo2);
     suelo2->setPos(3400, 330);
 
+
     // Crea un temporizador para verificar colisiones
     QTimer* timerColisiones = new QTimer(this);
     connect(timerColisiones, &QTimer::timeout, player, &Jugador::verificarColisiones);
     timerColisiones->start(16); // Verifica colisiones cada 16
     connect(player->timerSalto, &QTimer::timeout, player, &Jugador::actualizarSalto);
 
+    connect(player, &Jugador::vidaCambiada, this, &Level1::actualizarCorazones);
+    connect(player, &Jugador::posicionCambiada, this, &Level1::moverCorazones);
+
+    connect(player, &Jugador::vidaCero, this, &Level1::mostrarVentanaPerdiste);
+
+    // Conectar señales del diálogo NivelCompletadoDialog
+    dialogoNivelCompletado = new NivelCompletadoDialog(this);
+    connect(dialogoNivelCompletado, &NivelCompletadoDialog::continuarNivel2, this, &Level1::continuarNivel2);
+    connect(dialogoNivelCompletado, &NivelCompletadoDialog::volverMenuPrincipal, this, &Level1::volverMenuPrincipal);
+
+    // Configurar el timer para actualizar la posición del jugador
+    connect(timerPosicionJugador, &QTimer::timeout, this, &Level1::actualizarPosicionJugador);
+    timerPosicionJugador->start(16); // Actualizar cada 16 milisegundos (ajusta según sea necesario)
+
     adjustBackground();
-
-
 }
 
 Level1::~Level1()
@@ -223,6 +270,14 @@ Level1::~Level1()
 
     qDeleteAll(this->enemies);
     this->enemies.clear();
+
+    // Liberar la memoria de los corazones
+    qDeleteAll(corazones);
+    corazones.clear();
+
+    // Detener y liberar el timer
+    timerPosicionJugador->stop();
+    delete timerPosicionJugador;
 }
 
 void Level1::adjustBackground() {
@@ -265,11 +320,16 @@ void Level1::ajustarVistaMundo() {
     if (offsetX > anchoTotalMundo - anchoVentana / ui->graphicsView->transform().m11())
         offsetX = anchoTotalMundo - anchoVentana / ui->graphicsView->transform().m11();
 
+    desplazamientoHorizontal = offsetX; // Asignar el desplazamiento horizontal
+
     // Establecer el área visible
     ui->graphicsView->setSceneRect(offsetX, 0, anchoVentana / ui->graphicsView->transform().m11(), ui->graphicsView->height() / ui->graphicsView->transform().m11());
 
     // Centrar en el jugador
     ui->graphicsView->centerOn(playerX, ui->graphicsView->height() / (2 * ui->graphicsView->transform().m11()));
+
+    // Actualizar la posición del texto de la puntuación
+    puntuacionTexto->setPos(offsetX - 200, 15);
 
 
 }
@@ -368,8 +428,117 @@ void Level1::volverMenuPrincipal()
     // Mostrar el MenuInicio
     menuInicio->show();
 
+    // Aceptar y cerrar el diálogo NivelCompletadoDialog
+    if (dialogoNivelCompletado) {
+        dialogoNivelCompletado->accept();
+        dialogoNivelCompletado->deleteLater();
+        dialogoNivelCompletado = nullptr;
+    }
+
+    // Aceptar y cerrar el diálogo NivelCompletadoDialog
+    if (perderDialog) {
+        perderDialog->accept();
+        perderDialog->deleteLater();
+        perderDialog = nullptr;
+    }
+
     // Cerrar el Level1
     this->hide();
+}
+
+
+void Level1::actualizarCorazones(int nuevaVida) {
+    // Obtener el número de corazones que se deben mostrar
+    int corazonesAMostrar = (nuevaVida / 20) + 1;
+
+    // Ocultar o mostrar los corazones según la nueva vida
+    for (int i = 0; i < corazones.size(); ++i) {
+        if (i < corazonesAMostrar) {
+            corazones[i]->setVisible(true);
+        } else {
+            corazones[i]->setVisible(false);
+        }
+    }
+}
+
+void Level1::moverCorazones() {
+    ajustarVistaMundo(); // Actualiza el desplazamientoHorizontal
+
+    // Ocultar o mostrar los corazones según la nueva vida
+    for (int i = 0; i < corazones.size(); ++i) {
+        if (corazones[i]->isVisible()) {
+            corazones[i]->setPos(desplazamientoHorizontal + 10 + i * (corazones[i]->pixmap().width() + 5), 10);
+        }
+    }
+}
+
+void Level1::actualizarPuntuacionTexto(int nuevaPuntuacion) {
+    // Actualizar el texto del objeto QGraphicsTextItem con la nueva puntuación
+    puntuacionTexto->setPlainText(QString("Score: %1").arg(nuevaPuntuacion));
+    puntuacionTexto->setPos(600, 10); // Establecer la posición del texto
+}
+
+void Level1::mostrarVentanaPerdiste() {
+    PerderDialog *dialog = new PerderDialog(this);
+
+    connect(dialog, &PerderDialog::volverMenu, this, &Level1::volverMenuPrincipal);
+    connect(dialog, &PerderDialog::reiniciarNivel, [this]() {
+        // Lógica para reiniciar el nivel
+        close();
+        // Aceptar y cerrar el diálogo NivelCompletadoDialog
+        if (perderDialog) {
+            perderDialog->accept();
+            perderDialog->deleteLater();
+            perderDialog = nullptr;
+        }
+        Level1 *nuevoNivel = new Level1();
+        nuevoNivel->show();
+    });
+
+    dialog->exec();
+}
+
+void Level1::mostrarDialogoNivelCompletado()
+{
+
+    if (dialogoNivelCompletado)
+        dialogoNivelCompletado->exec();
+}
+
+void Level1::continuarNivel2()
+{
+    // Crear una instancia de Level2 si no existe
+    if (!level2) {
+        level2 = new Level2(this);
+    }
+
+    // Mostrar el Level2
+    level2->show();
+
+    // Aceptar y cerrar el diálogo NivelCompletadoDialog
+    if (dialogoNivelCompletado) {
+        dialogoNivelCompletado->accept();
+        dialogoNivelCompletado->deleteLater();
+        dialogoNivelCompletado = nullptr;
+    }
+
+    // Cerrar el Level1
+    this->hide();
+}
+
+
+
+void Level1::actualizarPosicionJugador()
+{
+    // Obtener la posición actual del jugador
+    qreal posicionJugadorX = player->getX();
+
+    // Verificar si el jugador llegó al límite derecho
+    if (posicionJugadorX >= 4000) {
+        mostrarDialogoNivelCompletado();
+        player->guardarDatos();
+
+    }
 }
 
 
