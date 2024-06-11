@@ -6,6 +6,8 @@
 #include "jugador.h"    //CambioAxel
 #include "menuinicio.h" // Agrega esta línea aquí
 #include "ui_level2.h"
+#include "Jefe1.h"
+#include "Jefe2.h"
 
 Level2::Level2(QWidget *parent)
     : QMainWindow(parent)
@@ -61,9 +63,35 @@ Level2::Level2(QWidget *parent)
     player->setPos(10, 450);
 
     connect(player, &Jugador::posicionCambiada, this, &Level2::ajustarVistaMundo); //CambioEscena
-    player->setLimites(800, 4000);                                                 //CambioEscena
+    player->setLimites(800, 4000);
 
-    //qDebug() << ui->graphicsView->size()<<" "<<scene->sceneRect();
+    //CORAZONES Y PUNTUACION
+    QPixmap corazonPixmap(":/Media/corazon.png");
+    corazonPixmap = corazonPixmap.scaledToWidth(corazonPixmap.width() * 0.15, Qt::SmoothTransformation);
+
+
+    // Crea los corazones y agrega cada uno a la escena
+    for (int i = 0, j = 800; i < 5; ++i) {
+        QGraphicsPixmapItem* corazon = new QGraphicsPixmapItem(corazonPixmap);
+        corazon->setPos(j, 10); // Establece la posición del corazón
+        j = j + 70;
+        scene->addItem(corazon);
+        corazones.append(corazon);
+    }
+
+    qDebug() << "Corazones en el vector:" << corazones.size();
+
+    // Crear el objeto QGraphicsTextItem para la puntuación
+    puntuacionTexto = new QGraphicsTextItem();
+    QFont font("Arial", 20); // Establece la fuente y el tamaño del texto
+    puntuacionTexto->setFont(font);
+    puntuacionTexto->setDefaultTextColor(Qt::red); // Establecer el color del texto a blanco
+    puntuacionTexto->setPos(600, 0); // Establecer la posición del texto
+    scene->addItem(puntuacionTexto);
+    scene->update();
+
+    // Conectar la señal puntuacionCambiada a la función para actualizar el texto
+    connect(player, &Jugador::puntuacionCambiada, this, &Level2::actualizarPuntuacionTexto);
 
     // Crear enemigos
     crearEnemigos(ui->graphicsView, player, scene);
@@ -79,16 +107,35 @@ Level2::Level2(QWidget *parent)
     }
 
     //------------------------------
-    Enemigo2 *enemigo2 = new Enemigo2(ui->graphicsView);
-    scene->addItem(enemigo2);
-    enemigo2->setPos(600, 135);
-    enemigo2->setJugador(player);
+    crearEnemigos2(ui->graphicsView, player, scene);
 
     // Conectar la señal de eliminarEnemigo
-    connect(enemigo2, &Enemigo2::eliminarEnemigo, [this, enemigo2]() {
-        this->scene->removeItem(enemigo2);
-        delete enemigo2;
-    });
+    for (Enemigo2* enemigo2 : enemies2) {
+        connect(enemigo2, &Enemigo2::eliminarEnemigo, [this, enemigo2]() {
+            //qDebug() << "Entrando al slot eliminarEnemigo de Enemigo2";
+            enemigo2->setVisible(false);
+            //qDebug() << "Llamando a eliminarDardo()";
+            enemigo2->eliminarDardo(); // Llamar a eliminarDardo() antes de eliminar al enemigo2
+            //qDebug() << "Dardo eliminado (si existía)";
+            this->scene->removeItem(enemigo2);
+
+            // Desconectar la conexión adicional a la señal eliminarEnemigo
+            disconnect(enemigo2, &Enemigo2::eliminarEnemigo, nullptr, nullptr);
+
+            // Desconectar la señal eliminarEnemigo
+            disconnect(enemigo2, &Enemigo2::eliminarEnemigo, this, nullptr);
+
+            delete enemigo2;
+            enemies2.removeOne(enemigo2);
+            //qDebug() << "Enemigo2 eliminado";
+        });
+    }
+
+    //JEFES
+    Jefe1* jefe1 = new Jefe1(ui->graphicsView);
+    scene->addItem(jefe1);
+    jefe1->setPos(500, 200);
+    jefe1->setJugador(player);
 
     // Agregar personajes y otros elementos a la escena
 
@@ -129,6 +176,9 @@ Level2::Level2(QWidget *parent)
     timerColisiones->start(16); // Verifica colisiones cada 16
     connect(player->timerSalto, &QTimer::timeout, player, &Jugador::actualizarSalto);
 
+    connect(player, &Jugador::vidaCambiada, this, &Level2::actualizarCorazones);
+    connect(player, &Jugador::posicionCambiada, this, &Level2::moverCorazones);
+
     adjustBackground();
 }
 
@@ -144,6 +194,10 @@ Level2::~Level2()
 
     qDeleteAll(this->enemies);
     this->enemies.clear();
+
+    // Liberar la memoria de los corazones
+    qDeleteAll(corazones);
+    corazones.clear();
 }
 
 void Level2::adjustBackground()
@@ -175,27 +229,27 @@ void Level2::showEvent(QShowEvent *event) //CambioAxel
     adjustBackground();
 }
 
-void Level2::ajustarVistaMundo()
-{
+void Level2::ajustarVistaMundo() {
     int playerX = player->getX();
     int offsetX = playerX - anchoVentana / (2 * ui->graphicsView->transform().m11());
 
     // Mantener la vista dentro de los límites del mundo
-    if (offsetX < 0)
-        offsetX = 0;
+    if (offsetX < 0) offsetX = 0;
     if (offsetX > anchoTotalMundo - anchoVentana / ui->graphicsView->transform().m11())
         offsetX = anchoTotalMundo - anchoVentana / ui->graphicsView->transform().m11();
 
+    desplazamientoHorizontal = offsetX; // Asignar el desplazamiento horizontal
+
     // Establecer el área visible
-    ui->graphicsView->setSceneRect(offsetX,
-                                   0,
-                                   anchoVentana / ui->graphicsView->transform().m11(),
-                                   ui->graphicsView->height() / ui->graphicsView->transform().m11());
+    ui->graphicsView->setSceneRect(offsetX, 0, anchoVentana / ui->graphicsView->transform().m11(), ui->graphicsView->height() / ui->graphicsView->transform().m11());
 
     // Centrar en el jugador
-    ui->graphicsView->centerOn(playerX,
-                               ui->graphicsView->height()
-                                   / (2 * ui->graphicsView->transform().m11()));
+    ui->graphicsView->centerOn(playerX, ui->graphicsView->height() / (2 * ui->graphicsView->transform().m11()));
+
+    // Actualizar la posición del texto de la puntuación
+    puntuacionTexto->setPos(offsetX - 200, 15);
+
+
 }
 
 void Level2::crearEnemigos(QGraphicsView *view, Jugador *jugador, QGraphicsScene *scene)
@@ -222,6 +276,53 @@ void Level2::crearEnemigos(QGraphicsView *view, Jugador *jugador, QGraphicsScene
     }
 }
 
+void Level2::crearEnemigos2(QGraphicsView* view, Jugador* jugador, QGraphicsScene* scene) {
+    QVector<QPointF> posicionesIniciales = {
+        QPointF(600, 135),
+        QPointF(240, 130),
+        QPointF(620, -10)
+    };
+
+    for (const QPointF& posicion : posicionesIniciales) {
+        Enemigo2* enemigo2 = new Enemigo2(view);
+        scene->addItem(enemigo2);
+        enemigo2->setPos(posicion);
+        enemigo2->setJugador(jugador);
+
+        // Conectar la señal de eliminarEnemigo
+        connect(enemigo2, &Enemigo2::eliminarEnemigo, [this, enemigo2, scene]() {
+            //qDebug() << "Entrando al slot eliminarEnemigo de Enemigo2";
+            enemigo2->setVisible(false);
+            //qDebug() << "Llamando a eliminarDardo()";
+            enemigo2->eliminarDardo(); // Llamar a eliminarDardo() antes de eliminar al enemigo2
+            //qDebug() << "Dardo eliminado (si existía)";
+            scene->removeItem(enemigo2);
+
+            // Detener y eliminar el temporizador timerDardo
+            if (enemigo2->timerDardo != nullptr) {
+                enemigo2->timerDardo->stop();
+                delete enemigo2->timerDardo;
+                enemigo2->timerDardo = nullptr;
+            }
+
+            // Eliminar el dardo si aún existe
+            if (enemigo2->dardo != nullptr) {
+                scene->removeItem(enemigo2->dardo);
+                delete enemigo2->dardo;
+                enemigo2->dardo = nullptr;
+            }
+
+            // Desconectar la señal eliminarEnemigo
+            disconnect(enemigo2, &Enemigo2::eliminarEnemigo, nullptr, nullptr);
+
+            delete enemigo2;
+            //qDebug() << "Enemigo2 eliminado";
+        });
+
+        enemies2.append(enemigo2);
+    }
+}
+
 void Level2::volverMenuPrincipal()
 {
     // Crear una instancia de MenuInicio si no existe
@@ -234,4 +335,35 @@ void Level2::volverMenuPrincipal()
 
     // Cerrar el Level1
     this->hide();
+}
+
+void Level2::actualizarCorazones(int nuevaVida) {
+    // Obtener el número de corazones que se deben mostrar
+    int corazonesAMostrar = (nuevaVida / 20) + 1;
+
+    // Ocultar o mostrar los corazones según la nueva vida
+    for (int i = 0; i < corazones.size(); ++i) {
+        if (i < corazonesAMostrar) {
+            corazones[i]->setVisible(true);
+        } else {
+            corazones[i]->setVisible(false);
+        }
+    }
+}
+
+void Level2::moverCorazones() {
+    ajustarVistaMundo(); // Actualiza el desplazamientoHorizontal
+
+    // Ocultar o mostrar los corazones según la nueva vida
+    for (int i = 0; i < corazones.size(); ++i) {
+        if (corazones[i]->isVisible()) {
+            corazones[i]->setPos(desplazamientoHorizontal + 10 + i * (corazones[i]->pixmap().width() + 5), 10);
+        }
+    }
+}
+
+void Level2::actualizarPuntuacionTexto(int nuevaPuntuacion) {
+    // Actualizar el texto del objeto QGraphicsTextItem con la nueva puntuación
+    puntuacionTexto->setPlainText(QString("Score: %1").arg(nuevaPuntuacion));
+    puntuacionTexto->setPos(600, 10); // Establecer la posición del texto
 }

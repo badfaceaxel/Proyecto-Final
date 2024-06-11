@@ -8,9 +8,11 @@
 #include <QShowEvent>   //CambioAxel
 #include <QTimer>
 #include "Enemigo1.h"
+#include "Enemigo2.h"
 #include "Particula.h"
 #include "jugador.h"
 #include <QMenuBar>
+#include <QGraphicsTextItem>
 
 
 // Agrega esta línea para la declaración anticipada
@@ -29,6 +31,7 @@ public:
     bool clic;
     Jugador *getJugador() { return player; } // Agrega esta función /////////CambioAxel
     void volverMenuPrincipal();
+    void actualizarPuntuacionTexto(int nuevaPuntuacion);
 
     ~Level3();
 
@@ -36,11 +39,17 @@ protected:
     void resizeEvent(QResizeEvent *event) override; //CambioAxel
     void showEvent(QShowEvent *event) override;     //CambioAxel
 
+private slots:
+    void actualizarCorazones(int nuevaVida);
+    void moverCorazones();
+
 private:
     Ui::Level3 *ui;
     QTimer *timer;
-    QList<Enemigo1 *> enemies;
-    void crearEnemigos(QGraphicsView *view, Jugador *jugador, QGraphicsScene *scene);
+    QList<Enemigo1*> enemies;
+    QVector<Enemigo2*> enemies2;
+    void crearEnemigos(QGraphicsView* view, Jugador* jugador, QGraphicsScene* scene);
+    void crearEnemigos2(QGraphicsView* view, Jugador* jugador, QGraphicsScene* scene);
 
     //FONDO
     QGraphicsScene *scene;
@@ -62,6 +71,11 @@ private:
     int backgroundHeight;
 
     Jugador *player; //CambioAxel
+
+    QVector<QGraphicsPixmapItem*> corazones;
+    QGraphicsTextItem *puntuacionTexto;
+    int desplazamientoHorizontal;
+
 };
 
 #endif // LEVEL3_H
