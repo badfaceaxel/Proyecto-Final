@@ -6,7 +6,7 @@ Jefe2::Jefe2(QGraphicsView* view, QGraphicsItem* im)
     setFlag(QGraphicsItem::ItemIsFocusable);
     setFocus();
 
-    spriteSheet.load(":/Imagenes/SpriteJefeB.png");
+    spriteSheet.load(":/Media/SpriteJefeB.png");
     QPixmap spriteJefe2 = spriteSheet.copy(0, 128, 128, 128);
     setPixmap(spriteJefe2);
 
@@ -43,7 +43,7 @@ void Jefe2::actualizarPosicion()
         }
 
         if (puedeDisparar) {
-            if (distanciaX <= 300 && (distanciaY >= 0 && distanciaY <= 20) && !flechaLanzada) {
+            if (distanciaX <= 500 && (distanciaY >= 0 && distanciaY <= 20) && !flechaLanzada) {
                 //qDebug() << "entro";
                 lanzarFlecha(posicionJugador);
             }

@@ -9,7 +9,6 @@ class Jefe1 : public Enemigo1 {
 
 public:
     Jefe1(QGraphicsView* view, QGraphicsItem* im = nullptr);
-    void verificarColisionJugador(); // Sobrescribe el método verificarColisionJugador
     void setGolpeandoSpriteJefe();
     void verificarColisionJugador(Jugador* jugador);
     void setSprite(bool direccion);
@@ -19,14 +18,14 @@ public:
     void setJugador(Jugador* jugador);
 
 protected:
-    // Sobrescribe el método setSprite
+           // Sobrescribe el método setSprite
 
 
 private:
 
     bool direccion = true;
     int contMov = 0;
-    int contGolpe = 0;
+    int contaGolpe = 0;
     bool vidaReducida = false;
     bool movimientoHaciaAdelante = true;
     bool golpeando = false;
@@ -36,6 +35,8 @@ private:
     QTimer* spriteTimer;
     QTimer* spriteGolpeTimer;
     QTimer* timerColisionJugador;
+
+    QTimer* timerRetardoGolpe;
 
 
 

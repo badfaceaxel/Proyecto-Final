@@ -11,7 +11,7 @@ Enemigo2::Enemigo2(QGraphicsView* view, QGraphicsItem* im)
     setFlag(QGraphicsItem::ItemIsFocusable, false);
 
     // Cargar sprite del enemigo
-    spriteSheet.load(":/Imagenes/SpriteEnemigoAD.png");
+    spriteSheet.load(":/Media/SpriteEnemigoAD.png");
     QPixmap spriteEnem2 = spriteSheet.copy(96, 0, 96, 96); // Sprite inicial del enemigo
     setPixmap(spriteEnem2);
 
@@ -26,13 +26,22 @@ Enemigo2::Enemigo2(QGraphicsView* view, QGraphicsItem* im)
     connect(timerAnimacion, &QTimer::timeout, this, &Enemigo2::actualizarAnimacionLanzar);
     timerDardo = new QTimer(this);
     connect(timerDardo, &QTimer::timeout, this, &Enemigo2::moverDardo);
+    timerRetraso = new QTimer(this);
+    connect(timerRetraso, &QTimer::timeout, this, &Enemigo2::iniciarLanzamientoDardo);
 }
 
 void Enemigo2::setJugador(Jugador* jugador) {
     jugadorObj = jugador;
 }
 
-void Enemigo2::actualizarPosicion() {
+void Enemigo2::iniciarLanzamientoDardo()
+{
+    lanzarDardo(jugadorObj->obtenerPosicion());
+    timerRetraso->stop(); // Detener el temporizador de retraso
+}
+
+void Enemigo2::actualizarPosicion()
+{
     if (jugadorObj) {
         QPointF posicionJugador = jugadorObj->obtenerPosicion();
         QPointF posicionEnemigo = obtenerPosicion();
@@ -40,21 +49,26 @@ void Enemigo2::actualizarPosicion() {
         // Calcular la distancia en valor absoluto en el eje x e y
         qreal distanciaX = qAbs(posicionJugador.x() - posicionEnemigo.x());
         qreal distanciaY = qAbs(posicionJugador.y() - posicionEnemigo.y());
-        //qDebug() << posicionJugador.y() << posicionEnemigo.y();
-        //qDebug() << posicionEnemigo.y() << distanciaY;
+
         // Determinar la dirección del dardo
         dardoHaciaLaDerecha = posicionJugador.x() > posicionEnemigo.x();
 
-        // Si la distancia en x es menor o igual a 200 y la distancia en y es menor o igual a 20, lanza el dardo
-        if (distanciaX <= 200 && (distanciaY >=10 && distanciaY < 60) && !dardoLanzado) {
-            lanzarDardo(posicionJugador);
+        // Si la distancia en x es menor o igual a 200 y la distancia en y es menor o igual a 20
+        if (distanciaX <= 200 && (distanciaY >= 10 && distanciaY < 60) && !dardoLanzado) {
+            if (!jugadorEnRango) { // Si el jugador entra en el rango por primera vez
+                jugadorEnRango = true; // Establecer la bandera a true
+                timerRetraso->start(1300); // Iniciar el temporizador de retraso de 1.5 segundos
+            }
+        } else {
+            jugadorEnRango = false; // Si el jugador sale del rango, restablecer la bandera
+            timerRetraso->stop(); // Detener el temporizador de retraso
         }
     }
 }
 
 void Enemigo2::lanzarDardo(const QPointF& posicionJugador)
 {
-    dardoLanzado = true;
+    dardoLanzado = false;
 
     // Eliminar el dardo existente si hay uno
     if (dardo != nullptr) {
@@ -163,14 +177,16 @@ void Enemigo2::eliminarDardo()
 {
     //qDebug() << "Entrando a eliminarDardo()";
 
-    // Detener y eliminar el temporizador timerDardo
     if (timerDardo != nullptr) {
         timerDardo->stop();
         delete timerDardo;
         timerDardo = nullptr;
     }
 
-    // Restablecer la bandera vidaReducida
+    if (timerRetraso != nullptr) {
+        timerRetraso->stop();
+    }
+
     vidaReducida = false;
 
     // Eliminar el dardo si aún existe

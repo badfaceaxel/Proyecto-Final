@@ -6,8 +6,8 @@ Jefe1::Jefe1(QGraphicsView* view, QGraphicsItem* im)
     setFlag(QGraphicsItem::ItemIsFocusable);
     setFocus();
 
-    spriteSheet.load(":/Imagenes/SpriteJefeA.png");
-    QPixmap spriteJefe1 = spriteSheet.copy(0, 0, 128, 128);
+    spriteSheet.load(":/Media/SpriteJefeA.png");
+    QPixmap spriteJefe1 = spriteSheet.copy(0, 128, 128, 128);
     setPixmap(spriteJefe1);
     setSprite(movimientoHaciaAdelante);
 
@@ -25,6 +25,13 @@ Jefe1::Jefe1(QGraphicsView* view, QGraphicsItem* im)
     timerColisionJugador = new QTimer(this);
     connect(timerColisionJugador, &QTimer::timeout, this, [=]() { verificarColisionJugador(jugadorObj); });
     timerColisionJugador->start(50); // Ajusta el intervalo según sea necesario
+
+    timerRetardoGolpe = new QTimer(this);
+    connect(timerRetardoGolpe, &QTimer::timeout, this, [=]() {
+        golpeando = true;
+        spriteGolpeTimer->start(350); // Inicia el temporizador para la animación de golpe
+        setGolpeandoSpriteJefe();
+    });
 
     // Inicializamos la bandera de reconocimiento del jugador
     jugadorReconocido = false;
@@ -60,9 +67,9 @@ void Jefe1::moverEnLineaRecta()
 
     setSprite(movimientoHaciaAdelante);
 
-    if (avanzando && QGraphicsPixmapItem::x() >= 600) {
+    if (avanzando && QGraphicsPixmapItem::x() >= 3900) {
         avanzando = false;
-    } else if (!avanzando && QGraphicsPixmapItem::x() <= 400) {
+    } else if (!avanzando && QGraphicsPixmapItem::x() <= 3600) {
         avanzando = true;
     }
 }
@@ -78,17 +85,19 @@ void Jefe1::actualizarSpriteJefe()
 
 void Jefe1::actualizarSpriteGolpeJefe()
 {
-    contGolpe++;
-    if (contGolpe == 4) {
-        contGolpe = 0;
+    contaGolpe++;
+    if (contaGolpe == 4) {
+        contaGolpe = 0;
         golpeando = false;
+        timerRetardoGolpe->stop();
         spriteGolpeTimer->stop();
         jugadorObj->setFocus();
         //Para poder volver a moverse
         timerMovimiento->start(50);
         spriteTimer->start(360);
-        // Reiniciamos la bandera de reconocimiento del jugador
+
         jugadorReconocido = false;
+
     }
     setGolpeandoSpriteJefe();
 }
@@ -97,8 +106,8 @@ void Jefe1::setGolpeandoSpriteJefe() {
     int spriteAncho = 128;
     int spriteAlto = 128;
     int spriteY = 256; // Usar el sprite de golpe
-    //qDebug()<< contGolpe;
-    QPixmap spriteJefe1 = spriteSheet.copy(contGolpe * spriteAncho, spriteY, spriteAncho, spriteAlto);
+    //qDebug()<< spriteY;
+    QPixmap spriteJefe1 = spriteSheet.copy(contaGolpe * spriteAncho, spriteY, spriteAncho, spriteAlto);
 
     setPixmap(spriteJefe1);
 }
@@ -106,15 +115,12 @@ void Jefe1::setGolpeandoSpriteJefe() {
 void Jefe1::verificarColisionJugador(Jugador* jugador)
 {
     if (collidesWithItem(jugador) && !jugadorReconocido) {
+        timerMovimiento->stop();
+        spriteTimer->stop();
         // Marcar que el jugador ha sido reconocido para evitar que se repita el golpe
         jugadorReconocido = true;
 
-        golpeando = true;
-        spriteGolpeTimer->start(300); // Inicia el temporizador para la animación de golpe
-        setGolpeandoSpriteJefe();
-
-        timerMovimiento->stop();
-        spriteTimer->stop();
+        timerRetardoGolpe->start(500);
 
         if (!vidaReducida) {
             jugador->disminuirVida(8);

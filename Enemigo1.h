@@ -26,13 +26,13 @@ public:
 
 
 private slots:
-    void moverEnLineaRecta();
-    void actualizarSprite();
-    void actualizarSpriteGolpe(); // actualizar el sprite de golpe
+    void moverEnLineaRectaEnem();
+    void actualizarSpriteEnem();
+    void actualizarSpriteGolpeEnem(); // actualizar el sprite de golpe
 
-    void setSprite(bool direccion); // Declaración del método setSprite
-    void setGolpeandoSprite();//para actualizar el sprite de golpe
-    void verificarColisionJugador();
+    void setSpriteEnem(bool direccion);
+    void setGolpeandoSpriteEnem();
+    void verificarColisionJugadorEnem();
 
 private:
 
@@ -40,7 +40,7 @@ private:
     QTimer* spriteGolpeTimer;
     QTimer* timerColisionJugador;
 
-    int contMov = QRandomGenerator::global()->bounded(7);//cambiar depronto
+    int contMov = QRandomGenerator::global()->bounded(7);
     int contGolpeEnemigo = 0;
 
     bool golpeando = false;

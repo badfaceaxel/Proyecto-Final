@@ -40,6 +40,9 @@ private:
     QTimer* timerVerificarDistancia = nullptr;
     QPointF posicionJugador;
     QPointF posicionInicial;
+    QTimer* timerRetraso = nullptr;
+    bool jugadorEnRango = false;
+    void iniciarLanzamientoDardo();
     void moverDardo();
 
 
