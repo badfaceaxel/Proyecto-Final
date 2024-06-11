@@ -149,15 +149,18 @@ void Enemigo2::lanzarDardoReal(const QPointF& posicionJugadorParam)
         connect(timerDardo, &QTimer::timeout, this, &Enemigo2::moverDardo);
     }
     timerDardo->start(130);
+    desaceleracionDardo = 10.0; // Velocidad inicial del dardo
 }
-
 
 void Enemigo2::moverDardo()
 {
     if (dardo != nullptr) {
-        // Mueve el dardo en la dirección calculada con una velocidad constante
-        qreal dx = (dardoHaciaLaDerecha ? 10 : -10);
+        // Mueve el dardo en la dirección calculada con desaceleración
+        qreal dx = (dardoHaciaLaDerecha ? desaceleracionDardo : -desaceleracionDardo);
         dardo->moveBy(dx, 0); // Movimiento horizontal solamente
+
+        // Reducir la desaceleración en cada iteración
+        desaceleracionDardo *= 0.95; // Ajusta este valor para controlar la tasa de desaceleración
 
         // Verifica si el dardo ha recorrido 200 unidades de distancia
         if (qAbs(dardo->pos().x() - posicionInicial.x()) >= 200) {

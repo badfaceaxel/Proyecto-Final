@@ -22,6 +22,7 @@ public:
     QGraphicsPolygonItem* dardo = nullptr;
     void eliminarDardo();
     void rotarSpriteDardo(qreal angulo);
+    qreal desaceleracionDardo = 1.0;
 
 
 private:
