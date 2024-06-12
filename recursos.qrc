@@ -1,0 +1,28 @@
+<RCC>
+    <qresource lang="Español" prefix="/Media">
+        <file>menu1.jpg</file>
+        <file>title.png</file>
+        <file>BotonInicio.png</file>
+        <file>BotonInicioRojo.png</file>
+        <file>BotonSalir.png</file>
+        <file>BotonSalirRojo.png</file>
+        <file>BotonScore.png</file>
+        <file>BotonScoreRojo.png</file>
+        <file>Click1.wav</file>
+        <file>Select1.wav</file>
+        <file>Firma.png</file>
+        <file>Musica1.mp3</file>
+        <file>background.jpg</file>
+        <file>SpriteADE.png</file>
+        <file>SpriteEnemigoADE.png</file>
+        <file>SpriteEnemigoAD.png</file>
+        <file>SpriteJefeA.png</file>
+        <file>background2.png</file>
+        <file>background3.jpg</file>
+        <file>Piedra.png</file>
+        <file>SpriteJefeB.png</file>
+        <file>corazon.png</file>
+        <file>arbol.png</file>
+        <file>sword.wav</file>
+    </qresource>
+</RCC>
