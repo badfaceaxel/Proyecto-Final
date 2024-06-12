@@ -7,7 +7,6 @@
 #include "nicknamedialog.h"
 #include "puntuacionesdialog.h"
 #include "nivelselecciondialog.h"
-QSoundEffect *MenuInicio::music = nullptr; // Inicializa la variable estática a nullptr
 
 MenuInicio::MenuInicio(QWidget *parent)   ////
     : QMainWindow(parent)
@@ -93,18 +92,6 @@ MenuInicio::MenuInicio(QWidget *parent)   ////
     clickSound->setSource(QUrl::fromLocalFile(":/Media/Click1.wav"));
     clickSound->setVolume(0.25f);
 
-
-    // Cargar sonidos
-    if (!music) {
-        music = new QSoundEffect(this);
-        music->setSource(QUrl::fromLocalFile("C:/Users/johna/Desktop/Pruebas2/Musica1.wav"));
-        music->setVolume(0.25f);
-        music->setLoopCount(QSoundEffect::Infinite);
-        music->play();
-    }
-
-
-
     // Ajustar la vista al tamaño de la ventana al inicio
     adjustBackground();
     adjustButtons();
@@ -123,8 +110,6 @@ MenuInicio::~MenuInicio()
     delete botonSalir;
     delete hoverSound;
     delete clickSound;
-    delete music;
-    music = nullptr;
     delete level1;
     delete level2;
     delete level3;

@@ -22,5 +22,7 @@
         <file>Piedra.png</file>
         <file>SpriteJefeB.png</file>
         <file>corazon.png</file>
+        <file>arbol.png</file>
+        <file>sword.wav</file>
     </qresource>
 </RCC>

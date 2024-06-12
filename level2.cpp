@@ -8,11 +8,17 @@
 #include "ui_level2.h"
 #include "Jefe1.h"
 #include "Jefe2.h"
+#include "level3.h"
+#include <nivelcompletado2dialog.h>
 
 Level2::Level2(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::Level2)
     , menuInicio(nullptr)  // Inicializa level2 a nullptr
+    , dialogoNivelCompletado2(nullptr)
+    , perderDialog(nullptr)
+    , timerPosicionJugador(new QTimer(this))
+    , level3(nullptr)  // Inicializa level2 a nullptr
 
 {
     ui->setupUi(this);
@@ -134,7 +140,7 @@ Level2::Level2(QWidget *parent)
     //JEFES
     Jefe1* jefe1 = new Jefe1(ui->graphicsView);
     scene->addItem(jefe1);
-    jefe1->setPos(500, 200);
+    jefe1->setPos(3700, 200);
     jefe1->setJugador(player);
 
     // Agregar personajes y otros elementos a la escena
@@ -150,25 +156,67 @@ Level2::Level2(QWidget *parent)
     QBrush brushPiedra(piedraTextura);
 
     // Crea un cuadrado
-    QGraphicsRectItem* cuadrado = new QGraphicsRectItem(0, 0, 200, 20);
-    cuadrado->setBrush(brushPiedra);
-    scene->addItem(cuadrado);
-    cuadrado->setPos(1300, 230);
-
     QGraphicsRectItem* espacioEnem1 = new QGraphicsRectItem(0, 0, 200, 20);
     espacioEnem1->setBrush(brushPiedra);
     scene->addItem(espacioEnem1);
-    espacioEnem1->setPos(1000, 210);
+    espacioEnem1->setPos(1200, 210);
 
-    QGraphicsRectItem* espacioEnem12 = new QGraphicsRectItem(0, 0, 80, 20);
+    QGraphicsRectItem* espacioEnem12 = new QGraphicsRectItem(0, 0, 150, 20);
     espacioEnem12->setBrush(brushPiedra);
     scene->addItem(espacioEnem12);
-    espacioEnem12->setPos(1400, 80);
+    espacioEnem12->setPos(1400, 120);
 
-    QGraphicsRectItem* suelo = new QGraphicsRectItem(0, 0, 800, 20);
+    QGraphicsRectItem* espacioEnem22 = new QGraphicsRectItem(0, 0, 100, 20);
+    espacioEnem22->setBrush(brushPiedra);
+    scene->addItem(espacioEnem22);
+    espacioEnem22->setPos(1600, 180);
+
+    QGraphicsRectItem* espacioEnem123 = new QGraphicsRectItem(0, 0, 150, 20);
+    espacioEnem123->setBrush(brushPiedra);
+    scene->addItem(espacioEnem123);
+    espacioEnem123->setPos(1780, 230);
+
+    QGraphicsRectItem* espacioEnem233 = new QGraphicsRectItem(0, 0, 170, 20);
+    espacioEnem233->setBrush(brushPiedra);
+    scene->addItem(espacioEnem233);
+    espacioEnem233->setPos(2000, 150);
+
+    QGraphicsRectItem* espacioEnem223 = new QGraphicsRectItem(0, 0, 180, 20);
+    espacioEnem223->setBrush(brushPiedra);
+    scene->addItem(espacioEnem223);
+    espacioEnem223->setPos(2250, 220);
+
+    QGraphicsRectItem* espacioEnem323 = new QGraphicsRectItem(0, 0, 150, 20);
+    espacioEnem323->setBrush(brushPiedra);
+    scene->addItem(espacioEnem323);
+    espacioEnem323->setPos(2500, 120);
+
+    QGraphicsRectItem* espacioEnem423 = new QGraphicsRectItem(0, 0, 150, 20);
+    espacioEnem423->setBrush(brushPiedra);
+    scene->addItem(espacioEnem423);
+    espacioEnem423->setPos(2700, 190);
+
+    QGraphicsRectItem* espacioEnem523 = new QGraphicsRectItem(0, 0, 180, 20);
+    espacioEnem523->setBrush(brushPiedra);
+    scene->addItem(espacioEnem523);
+    espacioEnem523->setPos(2900, 150);
+
+    QGraphicsRectItem* espacioEnem723 = new QGraphicsRectItem(0, 0, 250, 20);
+    espacioEnem723->setBrush(brushPiedra);
+    scene->addItem(espacioEnem723);
+    espacioEnem723->setPos(3900, 220);
+
+
+
+    QGraphicsRectItem* suelo = new QGraphicsRectItem(0, 0, 2000, 20);
     suelo->setBrush(brushPiedra);
     scene->addItem(suelo);
-    suelo->setPos(800, 330);
+    suelo->setPos(0, 330);
+
+    QGraphicsRectItem* suelo2 = new QGraphicsRectItem(0, 0, 1400, 20);
+    suelo2->setBrush(brushPiedra);
+    scene->addItem(suelo2);
+    suelo2->setPos(3200, 330);
 
     // Crea un temporizador para verificar colisiones
     QTimer *timerColisiones = new QTimer(this);
@@ -178,6 +226,17 @@ Level2::Level2(QWidget *parent)
 
     connect(player, &Jugador::vidaCambiada, this, &Level2::actualizarCorazones);
     connect(player, &Jugador::posicionCambiada, this, &Level2::moverCorazones);
+
+    connect(player, &Jugador::vidaCero, this, &Level2::mostrarVentanaPerdiste);
+
+    // Conectar señales del diálogo NivelCompletadoDialog
+    dialogoNivelCompletado2 = new NivelCompletado2Dialog(this);
+    connect(dialogoNivelCompletado2, &NivelCompletado2Dialog::continuarNivel3, this, &Level2::continuarNivel3);
+    connect(dialogoNivelCompletado2, &NivelCompletado2Dialog::volverMenuPrincipal, this, &Level2::volverMenuPrincipal);
+
+    // Configurar el timer para actualizar la posición del jugador
+    connect(timerPosicionJugador, &QTimer::timeout, this, &Level2::actualizarPosicionJugador);
+    timerPosicionJugador->start(16); // Actualizar cada 16 milisegundos (ajusta según sea necesario)
 
     adjustBackground();
 }
@@ -198,6 +257,10 @@ Level2::~Level2()
     // Liberar la memoria de los corazones
     qDeleteAll(corazones);
     corazones.clear();
+
+    // Detener y liberar el timer
+    timerPosicionJugador->stop();
+    delete timerPosicionJugador;
 }
 
 void Level2::adjustBackground()
@@ -256,9 +319,17 @@ void Level2::crearEnemigos(QGraphicsView *view, Jugador *jugador, QGraphicsScene
 {
     QVector<QPointF> posicionesIniciales = {
         QPointF(1400, 235),
-        QPointF(1000, 120),
-        QPointF(1400, -10),
-        QPointF(1600, -10)
+        QPointF(1800, 235),
+        QPointF(2300, 235),
+        QPointF(1200, 120),//Normales
+        QPointF(1400, 25),
+        QPointF(1600, 85),
+        QPointF(2000, 55),
+        QPointF(2500, 25),
+        QPointF(2580, 25),
+        QPointF(2750, 95),
+        QPointF(3500, 235),
+        QPointF(3400, 235)
     };
 
     for (int i = 0; i < posicionesIniciales.size(); ++i) {
@@ -268,7 +339,7 @@ void Level2::crearEnemigos(QGraphicsView *view, Jugador *jugador, QGraphicsScene
         enemigo->setJugador(jugador);
 
         // Iniciar el temporizador de movimiento solo para la primera y la tercera instancia
-        if (i == 0) {
+        if (i == 0 || i == 1 || i == 2) {
             enemigo->timerMovimiento->start(50);
         }
 
@@ -278,9 +349,17 @@ void Level2::crearEnemigos(QGraphicsView *view, Jugador *jugador, QGraphicsScene
 
 void Level2::crearEnemigos2(QGraphicsView* view, Jugador* jugador, QGraphicsScene* scene) {
     QVector<QPointF> posicionesIniciales = {
-        QPointF(600, 135),
-        QPointF(240, 130),
-        QPointF(620, -10)
+        QPointF(1100, 235),
+        QPointF(1300, 120),
+        QPointF(1470, 25),
+        QPointF(1450, 235),
+        QPointF(1600, 235),
+        QPointF(2100, 55),
+        QPointF(2350, 125),
+        QPointF(3900, 235),
+        QPointF(3800, 235),
+        QPointF(4000, 125)
+
     };
 
     for (const QPointF& posicion : posicionesIniciales) {
@@ -333,6 +412,20 @@ void Level2::volverMenuPrincipal()
     // Mostrar el MenuInicio
     menuInicio->show();
 
+    // Aceptar y cerrar el diálogo NivelCompletadoDialog
+    if (dialogoNivelCompletado2) {
+        dialogoNivelCompletado2->accept();
+        dialogoNivelCompletado2->deleteLater();
+        dialogoNivelCompletado2 = nullptr;
+    }
+
+    // Aceptar y cerrar el diálogo NivelCompletadoDialog
+    if (perderDialog) {
+        perderDialog->accept();
+        perderDialog->deleteLater();
+        perderDialog = nullptr;
+    }
+
     // Cerrar el Level1
     this->hide();
 }
@@ -367,3 +460,78 @@ void Level2::actualizarPuntuacionTexto(int nuevaPuntuacion) {
     puntuacionTexto->setPlainText(QString("Score: %1").arg(nuevaPuntuacion));
     puntuacionTexto->setPos(600, 10); // Establecer la posición del texto
 }
+
+void Level2::mostrarVentanaPerdiste() {
+    PerderDialog *dialog = new PerderDialog(this);
+
+    connect(dialog, &PerderDialog::volverMenu, this, &Level2::volverMenuPrincipal);
+    connect(dialog, &PerderDialog::reiniciarNivel, [this]() {
+        // Lógica para reiniciar el nivel
+        close();
+        // Aceptar y cerrar el diálogo NivelCompletadoDialog
+        if (perderDialog) {
+            perderDialog->accept();
+            perderDialog->deleteLater();
+            perderDialog = nullptr;
+        }
+        Level2 *nuevoNivel = new Level2();
+        nuevoNivel->show();
+    });
+
+    dialog->exec();
+}
+
+void Level2::mostrarDialogoNivelCompletado2()
+{
+
+    if (dialogoNivelCompletado2)
+        dialogoNivelCompletado2->exec();
+}
+
+void Level2::continuarNivel3()
+{
+    // Crear una instancia de Level2 si no existe
+    if (!level3) {
+        level3 = new Level3(this);
+    }
+
+    // Mostrar el Level3
+    level3->show();
+
+    // Aceptar y cerrar el diálogo NivelCompletadoDialog
+    if (dialogoNivelCompletado2) {
+        dialogoNivelCompletado2->accept();
+        dialogoNivelCompletado2->deleteLater();
+        dialogoNivelCompletado2 = nullptr;
+    }
+
+    // Cerrar el Level2
+    this->hide();
+}
+
+
+
+void Level2::actualizarPosicionJugador()
+{
+    // Obtener la posición actual del jugador
+    qreal posicionJugadorX = player->getX();
+
+    // Verificar si el jugador llegó al límite derecho
+    if (posicionJugadorX >= 4000) {
+        mostrarDialogoNivelCompletado2();
+        QString nickname = player->getNickname();
+        for (const QPair<QString, int>& registro : player->getRegistros()) {
+            if (registro.first == nickname) {
+                int puntuacion = registro.second;
+                int puntActual = player->getPuntuacion();
+                int newScore = puntuacion + puntActual;
+                player->setPuntuacion(newScore);
+                break;
+            }
+        }
+        player->guardarDatos();
+
+    }
+}
+
+

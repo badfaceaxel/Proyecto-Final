@@ -13,9 +13,13 @@
 #include "jugador.h"
 #include <QMenuBar>
 #include <QGraphicsTextItem>
+#include "perderdialog.h" // Incluir el nuevo diálogo
 
 // Agrega esta línea para la declaración anticipada
 class MenuInicio; // Esto le dice al compilador que MenuInicio es una clase       //CambioAxel
+class Level3;
+class NivelCompletado2Dialog;
+class PerderDialog;
 
 namespace Ui {
 class Level2;
@@ -31,6 +35,7 @@ public:
     Jugador *getJugador() { return player; } // Agrega esta función /////////CambioAxel
     void volverMenuPrincipal();
     void actualizarPuntuacionTexto(int nuevaPuntuacion);
+    void actualizarPosicionJugador();
 
     ~Level2();
 
@@ -41,6 +46,9 @@ protected:
 private slots:
     void actualizarCorazones(int nuevaVida);
     void moverCorazones();
+    void mostrarVentanaPerdiste(); // Declarar la función
+    void mostrarDialogoNivelCompletado2();
+    void continuarNivel3();
 
 private:
     Ui::Level2 *ui;
@@ -61,6 +69,7 @@ private:
     void desplazarFondo(int desplazamiento);
     void adjustBackground(); //CambioAxel
     MenuInicio *menuInicio; //CambioAxel  - esto no lo ponga en su codigo de pruebas pero si en el GIT
+    Level3 *level3;
     QMenuBar *menuBar;
 
     int anchoTotalMundo;      //CambioEscena
@@ -74,6 +83,10 @@ private:
     QVector<QGraphicsPixmapItem*> corazones;
     QGraphicsTextItem *puntuacionTexto;
     int desplazamientoHorizontal;
+
+    PerderDialog *perderDialog;
+    NivelCompletado2Dialog *dialogoNivelCompletado2;
+    QTimer *timerPosicionJugador;
 
 };
 

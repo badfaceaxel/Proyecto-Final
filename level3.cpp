@@ -7,12 +7,16 @@
 #include "menuinicio.h" // Agrega esta línea aquí
 #include "ui_level3.h"
 #include "Jefe2.h"
+#include <nivelcompletadodialog.h>
+#include "ganadordialog.h"
 
 Level3::Level3(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::Level3)
     , menuInicio(nullptr)  // Inicializa level2 a nullptr
-
+    , perderDialog(nullptr)
+    , timerPosicionJugador(new QTimer(this))
+    , dialogoGanador(nullptr)
 {
     ui->setupUi(this);
 
@@ -132,7 +136,7 @@ Level3::Level3(QWidget *parent)
 
     Jefe2* jefe2 = new Jefe2(ui->graphicsView);
     scene->addItem(jefe2);
-    jefe2->setPos(500, 200);
+    jefe2->setPos(3900, 200);
     jefe2->setJugador(player);
 
     // Agregar personajes y otros elementos a la escena
@@ -148,26 +152,65 @@ Level3::Level3(QWidget *parent)
     QBrush brushPiedra(piedraTextura);
 
     // Crea un cuadrado
-    QGraphicsRectItem* cuadrado = new QGraphicsRectItem(0, 0, 200, 20);
-    cuadrado->setBrush(brushPiedra);
-    scene->addItem(cuadrado);
-    cuadrado->setPos(1300, 230);
-
     QGraphicsRectItem* espacioEnem1 = new QGraphicsRectItem(0, 0, 200, 20);
     espacioEnem1->setBrush(brushPiedra);
     scene->addItem(espacioEnem1);
     espacioEnem1->setPos(1000, 210);
 
-    QGraphicsRectItem* espacioEnem12 = new QGraphicsRectItem(0, 0, 80, 20);
+    QGraphicsRectItem* espacioEnem12 = new QGraphicsRectItem(0, 0, 100, 20);
     espacioEnem12->setBrush(brushPiedra);
     scene->addItem(espacioEnem12);
-    espacioEnem12->setPos(1400, 80);
+    espacioEnem12->setPos(1300, 130);
 
+    QGraphicsRectItem* espacioEnem123 = new QGraphicsRectItem(0, 0, 200, 20);
+    espacioEnem123->setBrush(brushPiedra);
+    scene->addItem(espacioEnem123);
+    espacioEnem123->setPos(1700, 230);
 
-    QGraphicsRectItem* suelo = new QGraphicsRectItem(0, 0, 4800, 20);
+    QGraphicsRectItem* espacioEnem233 = new QGraphicsRectItem(0, 0, 170, 20);
+    espacioEnem233->setBrush(brushPiedra);
+    scene->addItem(espacioEnem233);
+    espacioEnem233->setPos(2000, 150);
+
+    QGraphicsRectItem* espacioEnem223 = new QGraphicsRectItem(0, 0, 150, 20);
+    espacioEnem223->setBrush(brushPiedra);
+    scene->addItem(espacioEnem223);
+    espacioEnem223->setPos(2300, 230);
+
+    QGraphicsRectItem* espacioEnem323 = new QGraphicsRectItem(0, 0, 150, 20);
+    espacioEnem323->setBrush(brushPiedra);
+    scene->addItem(espacioEnem323);
+    espacioEnem323->setPos(2500, 120);
+
+    QGraphicsRectItem* espacioEnem423 = new QGraphicsRectItem(0, 0, 150, 20);
+    espacioEnem423->setBrush(brushPiedra);
+    scene->addItem(espacioEnem423);
+    espacioEnem423->setPos(2700, 190);
+
+    QGraphicsRectItem* espacioEnem523 = new QGraphicsRectItem(0, 0, 170, 20);
+    espacioEnem523->setBrush(brushPiedra);
+    scene->addItem(espacioEnem523);
+    espacioEnem523->setPos(2950, 230);
+
+    QGraphicsRectItem* espacioEnem813 = new QGraphicsRectItem(0, 0, 400, 20);
+    espacioEnem813->setBrush(brushPiedra);
+    scene->addItem(espacioEnem813);
+    espacioEnem813->setPos(3400, 200);
+
+    QGraphicsRectItem* suelo = new QGraphicsRectItem(0, 0, 1000, 20);
     suelo->setBrush(brushPiedra);
     scene->addItem(suelo);
     suelo->setPos(0, 330);
+
+    QGraphicsRectItem* suelo2 = new QGraphicsRectItem(0, 0, 1400, 20);
+    suelo2->setBrush(brushPiedra);
+    scene->addItem(suelo2);
+    suelo2->setPos(1400, 330);
+
+    QGraphicsRectItem* suelo3 = new QGraphicsRectItem(0, 0, 1600, 20);
+    suelo3->setBrush(brushPiedra);
+    scene->addItem(suelo3);
+    suelo3->setPos(3200, 330);
 
     // Crea un temporizador para verificar colisiones
     QTimer *timerColisiones = new QTimer(this);
@@ -177,6 +220,16 @@ Level3::Level3(QWidget *parent)
 
     connect(player, &Jugador::vidaCambiada, this, &Level3::actualizarCorazones);
     connect(player, &Jugador::posicionCambiada, this, &Level3::moverCorazones);
+
+    connect(player, &Jugador::vidaCero, this, &Level3::mostrarVentanaPerdiste);
+
+    // Conectar señal del diálogo GanadorDialog
+    dialogoGanador = new GanadorDialog(this);
+    connect(dialogoGanador, &GanadorDialog::volverMenuPrincipal, this, &Level3::volverMenuPrincipal);
+
+    // Configurar el timer para actualizar la posición del jugador
+    connect(timerPosicionJugador, &QTimer::timeout, this, &Level3::actualizarPosicionJugador);
+    timerPosicionJugador->start(16); // Actualizar cada 16 milisegundos (ajusta según sea necesario)
 
     adjustBackground();
 }
@@ -197,6 +250,10 @@ Level3::~Level3()
     // Liberar la memoria de los corazones
     qDeleteAll(corazones);
     corazones.clear();
+
+    // Detener y liberar el timer
+    timerPosicionJugador->stop();
+    delete timerPosicionJugador;
 }
 
 void Level3::adjustBackground()
@@ -254,10 +311,22 @@ void Level3::ajustarVistaMundo() {
 void Level3::crearEnemigos(QGraphicsView *view, Jugador *jugador, QGraphicsScene *scene)
 {
     QVector<QPointF> posicionesIniciales = {
-        QPointF(1400, 235),
         QPointF(1000, 120),
-        QPointF(1400, -10),
-        QPointF(1600, -10)
+        QPointF(1300, 35),
+        QPointF(1700, 135),
+        QPointF(1900, 235),
+        QPointF(2000, 55),
+        QPointF(2100, 235),
+        QPointF(2300, 135),
+        QPointF(2400, 235),
+        QPointF(2500, 25),
+        QPointF(2570, 25),
+        QPointF(2950, 135),
+        QPointF(3050, 135),
+        QPointF(3400, 105),
+        QPointF(3500, 235),
+        QPointF(3700, 105)
+
     };
 
     for (int i = 0; i < posicionesIniciales.size(); ++i) {
@@ -266,20 +335,25 @@ void Level3::crearEnemigos(QGraphicsView *view, Jugador *jugador, QGraphicsScene
         enemigo->establecerPosicionInicial(posicionesIniciales[i].x(), posicionesIniciales[i].y());
         enemigo->setJugador(jugador);
 
-        // Iniciar el temporizador de movimiento solo para la primera y la tercera instancia
-        if (i == 0) {
-            enemigo->timerMovimiento->start(50);
-        }
-
         enemies.append(enemigo);
     }
 }
 
 void Level3::crearEnemigos2(QGraphicsView* view, Jugador* jugador, QGraphicsScene* scene) {
     QVector<QPointF> posicionesIniciales = {
-        QPointF(600, 135),
-        QPointF(240, 130),
-        QPointF(620, -10)
+        QPointF(1100, 120),
+        QPointF(1700, 235),
+        QPointF(1800, 135),
+        QPointF(2100, 55),
+        QPointF(2200, 235),
+        QPointF(2370, 135),
+        QPointF(2500, 235),
+        QPointF(2600, 235),
+        QPointF(3800, 235),
+        QPointF(3700, 235),
+        QPointF(3505, 105),
+        QPointF(3650, 105),
+        QPointF(3600, 235)
     };
 
     for (const QPointF& posicion : posicionesIniciales) {
@@ -332,6 +406,20 @@ void Level3::volverMenuPrincipal()
     // Mostrar el MenuInicio
     menuInicio->show();
 
+    // Aceptar y cerrar el diálogo NivelCompletadoDialog
+    if (dialogoGanador) {
+        dialogoGanador->accept();
+        dialogoGanador->deleteLater();
+        dialogoGanador = nullptr;
+    }
+
+    // Aceptar y cerrar el diálogo NivelCompletadoDialog
+    if (perderDialog) {
+        perderDialog->accept();
+        perderDialog->deleteLater();
+        perderDialog = nullptr;
+    }
+
     // Cerrar el Level1
     this->hide();
 }
@@ -365,5 +453,58 @@ void Level3::actualizarPuntuacionTexto(int nuevaPuntuacion) {
     // Actualizar el texto del objeto QGraphicsTextItem con la nueva puntuación
     puntuacionTexto->setPlainText(QString("Score: %1").arg(nuevaPuntuacion));
     puntuacionTexto->setPos(600, 10); // Establecer la posición del texto
+}
+
+void Level3::mostrarVentanaPerdiste() {
+    PerderDialog *dialog = new PerderDialog(this);
+
+    connect(dialog, &PerderDialog::volverMenu, this, &Level3::volverMenuPrincipal);
+    connect(dialog, &PerderDialog::reiniciarNivel, [this]() {
+        // Lógica para reiniciar el nivel
+        close();
+        // Aceptar y cerrar el diálogo NivelCompletadoDialog
+        if (perderDialog) {
+            perderDialog->accept();
+            perderDialog->deleteLater();
+            perderDialog = nullptr;
+        }
+        Level3 *nuevoNivel = new Level3();
+        nuevoNivel->show();
+    });
+
+    dialog->exec();
+}
+
+
+
+
+void Level3::actualizarPosicionJugador()
+{
+    // Obtener la posición actual del jugador
+    qreal posicionJugadorX = player->getX();
+
+    // Verificar si el jugador llegó al límite derecho
+    if (posicionJugadorX >= 4000) {
+        mostrarDialogoGanador();
+        QString nickname = player->getNickname();
+        for (const QPair<QString, int>& registro : player->getRegistros()) {
+            if (registro.first == nickname) {
+                int puntuacion = registro.second;
+                int puntActual = player->getPuntuacion();
+                int newScore = puntuacion + puntActual;
+                player->setPuntuacion(newScore);
+                break;
+            }
+        }
+        player->guardarDatos();
+
+    }
+}
+
+
+void Level3::mostrarDialogoGanador()
+{
+    if (dialogoGanador)
+        dialogoGanador->exec();
 }
 
